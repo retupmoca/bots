@@ -36,8 +36,9 @@ typedef struct {
     int speed;
 } bot_physics;
 struct s_world {
-    machine* bots[2];
-    bot_physics* botdata[2];
+    int botcount;
+    machine* bots[16];
+    bot_physics* botdata[16];
 };
 
 #endif

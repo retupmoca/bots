@@ -17,6 +17,6 @@ void op_add(machine*);
 void op_out(machine*);
 void op_in(machine*);
 
-opdata oplist[6];
+opdata oplist[7];
 
 #endif

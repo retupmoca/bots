@@ -1,7 +1,7 @@
-CFLAGS = -g 
+CFLAGS = -g
 
-bots : main.o ops.o machine.o
-	gcc -g -o bots main.o ops.o machine.o
+bots : main.o ops.o machine.o world.o
+	gcc -g -o bots main.o ops.o machine.o world.o
 
-clean : 
+clean :
 	rm *o bots
