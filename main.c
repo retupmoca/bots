@@ -3,9 +3,11 @@
 
 /* CPU ops */
 
+typedef struct s_world world;
+
 typedef struct {
     /* cpu */
-    char registers[4];
+    char registers[8];
     short pc;
     short mem_max;
     char memory[128];
@@ -25,7 +27,7 @@ typedef struct {
     char ports[16];
 
     /* physics? */
-    void* world; /* should be world*, but need to set up predeclarations */
+    world* world; /* should be world*, but need to set up predeclarations */
     int machine_id;
 } machine;
 
@@ -35,20 +37,22 @@ typedef struct {
     int heading;
     int speed;
 } bot_physics;
+struct s_world {
+    machine* bots[2];
+    bot_physics* botdata[2];
+};
 
 void out_reqpos(machine* m) {
-    /* ... */
+    m->ports[1] = m->world->botdata[m->machine_id]->x;
+    m->ports[2] = m->world->botdata[m->machine_id]->x;
 }
 
-void* outport_actions[16] = {
+typedef void (*action)(machine*);
+
+action outport_actions[16] = {
     &out_reqpos,
     0
 };
-
-typedef struct {
-    machine* bots[2];
-    bot_physics* botdata[2];
-} world;
 
 typedef struct {
     char size;
@@ -78,7 +82,7 @@ void op_add(machine* m) {
 void op_out(machine* m) {
     m->ports[m->args[0]] = m->args[1];
     if(outport_actions[m->args[0]]){
-        /* action(m) */
+        (*outport_actions[m->args[0]])(m);
     }
 }
 
@@ -86,16 +90,20 @@ void op_in(machine* m) {
     m->registers[m->args[0]] = m->ports[m->args[1]];
 }
 
-opdata oplist[4] = {
+opdata oplist[6] = {
   { 1, 0, {}, &op_rset },
   { 1, 0, {}, &op_nop },
   { 3, 2, {1, 1}, &op_ldi },
-  { 4, 3, {1, 1, 1}, &op_add }
+  { 4, 3, {1, 1, 1}, &op_add },
+  { 3, 2, {1, 1}, &op_out },
+  { 3, 2, {1, 1}, &op_in }
 };
 /**/
 
 /* bot data */
 void machine_execute(machine* m) {
+    if(!m->execute_ready)
+        return;
     (*oplist[m->op].execute)(m);
 }
 
@@ -131,11 +139,36 @@ void machine_fetch(machine* m) {
 /**/
 
 void main() {
-    machine m = { 0 };
-    m.mem_max=127;
+    world w = { 0 };
+    machine m1 = { 0 };
+    bot_physics mp1 = { 0 };
+    mp1.x = 25;
+    mp1.y = 50;
+
+    /* test program */
+    /* out 0 0 */
+    m1.memory[0] = 4;
+    m1.memory[1] = 0;
+    m1.memory[2] = 0;
+
+    /* in r3 1 */
+    m1.memory[3] = 5;
+    m1.memory[4] = 3;
+    m1.memory[5] = 1;
+
+    /* in r4 2 */
+    m1.memory[6] = 5;
+    m1.memory[7] = 4;
+    m1.memory[8] = 2;
+    /* end test program */
+
+    m1.mem_max=127;
+    w.bots[0] = &m1;
+    w.botdata[0] = &mp1;
+    m1.world = &w;
     while(1) {
-        machine_execute(&m);
-        machine_decode(&m);
-        machine_fetch(&m);
-    }    
+        machine_execute(&m1);
+        machine_decode(&m1);
+        machine_fetch(&m1);
+    }
 }
