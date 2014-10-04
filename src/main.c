@@ -14,19 +14,15 @@ void main() {
     mp1.y = 50;
 
     /* test program */
-    /* eint 0 */
-    m1.memory[0] = 6;
-    m1.memory[1] = 0;
+    /* out 3 127 */
+    m1.memory[0] = 4;
+    m1.memory[1] = 3;
+    m1.memory[2] = 127;
 
-    /* in r3 1 */
-    m1.memory[2] = 5;
-    m1.memory[3] = 3;
-    m1.memory[4] = 1;
-
-    /* in r4 2 */
+    /* out 4 5 */
+    m1.memory[3] = 4;
+    m1.memory[4] = 4;
     m1.memory[5] = 5;
-    m1.memory[6] = 4;
-    m1.memory[7] = 2;
     /* end test program */
 
     m1.mem_max=127;
