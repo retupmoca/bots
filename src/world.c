@@ -12,7 +12,7 @@ void world_tick(world* w){
         w->botdata[i]->speed = w->bots[i]->ports[4];
 
         /* drive! */
-        double rangle = w->botdata[i]->heading * M_PI / 127;
+        double rangle = w->botdata[i]->heading * M_PI / 128;
         int dist = w->botdata[i]->speed;
         int dx = floor(0.5 + (dist * cos(rangle)));
         int dy = floor(0.5 + (dist * sin(rangle)));
