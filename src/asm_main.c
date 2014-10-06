@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "ops.h"
 
 typedef struct {
@@ -21,12 +22,38 @@ typedef struct {
     char* args[3];
 } inst;
 
-void write_inst(inst* in) {
-    /* todo */
+void write_inst(FILE* f, inst* in) {
+    int i = 0;
+    for(;i<7;i++){
+        if(strcmp(mydata[i].name, in->name) == 0){
+            printf("doing putc\n");
+            putc(i, f);
+
+            int j = 0;
+            for(;j < 2; j++){
+                char piece = atoi(in->args[j]);
+                putc(piece, f);
+            }
+        }
+    }
 }
 
-void main() {
-    char* code = "out.ii 3 128 out.ii 4 5";
+int main(int argc, char* argv[]) {
+    if(argc != 3){
+        return 1;
+    }
+    char *code;
+
+    FILE* fin = fopen(argv[1], "r");
+    fseek(fin, 0L, SEEK_END);
+    long s = ftell(fin);
+    rewind(fin);
+    code = malloc(s+1);
+    code[s] = 0;
+    fread(code, s, 1, fin);
+    fclose(fin);
+
+    FILE* out = fopen(argv[2], "w");
 
     int i = 0;
     int start = 0;
@@ -50,7 +77,8 @@ void main() {
                 argcount++;
 
                 if(argcount > 2) { /* todo: get real argcount */
-                    write_inst(&in);
+                    printf("Writing instruction...\n");
+                    write_inst(out, &in);
                     free(in.name);
                     int j = 1;
                     for(;j<argcount;j++){
@@ -58,8 +86,14 @@ void main() {
                     }
                     argcount = 0;
                 }
+                start = i+1;
             }
         }
     }
+
+    free(code);
+    fclose(out);
+
+    return 0;
 }
 
