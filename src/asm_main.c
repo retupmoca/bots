@@ -29,8 +29,9 @@ void write_inst(FILE* f, inst* in) {
             printf("doing putc\n");
             putc(i, f);
 
+            int numargs = oplist[i].argcount;
             int j = 0;
-            for(;j < 2; j++){
+            for(;j < numargs; j++){
                 char piece = atoi(in->args[j]);
                 putc(piece, f);
             }
@@ -59,6 +60,7 @@ int main(int argc, char* argv[]) {
     int start = 0;
     inst in;
     int argcount = 0;
+    int numargs = 0;
     for(;i == 0 || code[i-1];i++){
         if(code[i] == ' ' || code[i] == '\n' || code[i] == '\0'){
             if(start == i) {
@@ -69,14 +71,21 @@ int main(int argc, char* argv[]) {
                 str[size] = 0;
                 memcpy(str, code + start, size);
 
-                if(argcount == 0)
+                if(argcount == 0) {
                     in.name = str;
+                    int i = 0;
+                    for(;i<7;i++){
+                        if(strcmp(mydata[i].name, in.name) == 0){
+                            numargs = oplist[i].argcount;
+                        }
+                    }
+                }
                 else
                     in.args[argcount-1] = str;
 
                 argcount++;
 
-                if(argcount > 2) { /* todo: get real argcount */
+                if(argcount > numargs) { /* todo: get real argcount */
                     printf("Writing instruction...\n");
                     write_inst(out, &in);
                     free(in.name);
@@ -85,6 +94,7 @@ int main(int argc, char* argv[]) {
                         free(in.args[j-1]);
                     }
                     argcount = 0;
+                    numargs = 0;
                 }
                 start = i+1;
             }
