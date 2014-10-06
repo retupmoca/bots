@@ -93,10 +93,9 @@ num | name
 
 ints
 
-num|name
--|-
-|rset
-|destruct
-|scan
-|fire
-
+num | name
+----|-----
+ |rset
+ |destruct
+ |scan
+ |fire
