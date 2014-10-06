@@ -26,7 +26,6 @@ void write_inst(FILE* f, inst* in) {
     int i = 0;
     for(;i<7;i++){
         if(strcmp(mydata[i].name, in->name) == 0){
-            printf("doing putc\n");
             putc(i, f);
 
             int numargs = oplist[i].argcount;
@@ -74,10 +73,16 @@ int main(int argc, char* argv[]) {
                 if(argcount == 0) {
                     in.name = str;
                     int i = 0;
+                    char found = 0;
                     for(;i<7;i++){
                         if(strcmp(mydata[i].name, in.name) == 0){
                             numargs = oplist[i].argcount;
+                            found = 1;
                         }
+                    }
+                    if(!found){
+                        printf("Bad opcode: %s\n", in.name);
+                        return 2;
                     }
                 }
                 else
@@ -86,7 +91,7 @@ int main(int argc, char* argv[]) {
                 argcount++;
 
                 if(argcount > numargs) { /* todo: get real argcount */
-                    printf("Writing instruction...\n");
+                    printf("Writing instruction %s...\n", in.name);
                     write_inst(out, &in);
                     free(in.name);
                     int j = 1;
