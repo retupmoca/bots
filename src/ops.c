@@ -43,12 +43,12 @@ void op_eint(machine* m) {
     }
 }
 
-opdata oplist[7] = {
+opdata oplist[OPCOUNT] = {
   { 1, 0, {}, &op_rset },
   { 1, 0, {}, &op_nop },
-  { 3, 2, {1, 1}, &op_ldi },
+  { 4, 2, {1, 2}, &op_ldi },
   { 4, 3, {1, 1, 1}, &op_add },
-  { 3, 2, {1, 1}, &op_out },
-  { 3, 2, {1, 1}, &op_in },
+  { 5, 2, {2, 2}, &op_out },
+  { 4, 2, {1, 2}, &op_in },
   { 2, 1, {1}, &op_eint }
 };

@@ -13,8 +13,15 @@ void machine_decode(machine* m) {
         return;
     
     m->op = m->decode_bytes[0];
+    uint8_t pos = 1;
     for(i = 0; i < oplist[m->op].argcount; i++){
-        m->args[i] = m->decode_bytes[1 + i];
+        uint8_t argsize = oplist[m->op].arg_sizes[i];
+        m->args[i] = 0;
+        uint8_t j = 0;
+        for(; j < argsize; j++){
+            m->args[i] <<= 8;
+            m->args[i] |= m->decode_bytes[pos++];
+        }
     }
 
     m->execute_ready = 1;
@@ -29,7 +36,7 @@ void machine_fetch(machine* m) {
     char i;
     for(i=0; i < oplist[op].size; i++){
         if(m->fetch_pc + i <= m->mem_max){
-	    m->decode_bytes[i] = m->memory[m->fetch_pc + i];
+            m->decode_bytes[i] = m->memory[m->fetch_pc + i];
         }
     }
     m->decode_pc = m->fetch_pc;

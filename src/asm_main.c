@@ -7,7 +7,7 @@ typedef struct {
     char* name;
 } asm_opdata;
 
-asm_opdata mydata[7] = {
+asm_opdata mydata[OPCOUNT] = {
     { "rset" },
     { "nop" },
     { "mov.i" },
@@ -24,15 +24,20 @@ typedef struct {
 
 void write_inst(FILE* f, inst* in) {
     int i = 0;
-    for(;i<7;i++){
+    for(;i<OPCOUNT;i++){
         if(strcmp(mydata[i].name, in->name) == 0){
             putc(i, f);
 
             int numargs = oplist[i].argcount;
             int j = 0;
             for(;j < numargs; j++){
-                char piece = atoi(in->args[j]);
-                putc(piece, f);
+                int32_t piece = atoi(in->args[j]);
+                if(oplist[i].arg_sizes[j] == 2) {
+                    putc((char)((piece & 0xff00) >> 8), f);
+                    putc((char)(piece & 0x00ff), f);
+                } else {
+                    putc((char)(piece & 0x00ff), f);
+                }
             }
         }
     }
@@ -74,7 +79,7 @@ int main(int argc, char* argv[]) {
                     in.name = str;
                     int i = 0;
                     char found = 0;
-                    for(;i<7;i++){
+                    for(;i<OPCOUNT;i++){
                         if(strcmp(mydata[i].name, in.name) == 0){
                             numargs = oplist[i].argcount;
                             found = 1;
@@ -90,7 +95,7 @@ int main(int argc, char* argv[]) {
 
                 argcount++;
 
-                if(argcount > numargs) { /* todo: get real argcount */
+                if(argcount > numargs) {
                     printf("Writing instruction %s...\n", in.name);
                     write_inst(out, &in);
                     free(in.name);
