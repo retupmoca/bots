@@ -5,7 +5,7 @@
 
 #include "struct.h"
 
-#define OPCOUNT 62
+#define OPCOUNT 68
 
 typedef struct {
     uint8_t size;

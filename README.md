@@ -23,61 +23,67 @@ number | name | arg1 | arg2 | arg3
 4 |add.ri | r | r | i
 5 |sub.rr | r | r | r
 6 |sub.ri | r | r | i
-7 |mul.rr | r | r | r
-8 |mul.ri | r | r | i
-9 |div.rr | r | r | r
-10 |div.ri | r | r | i
-11 |mod.rr | r | r | r
-12 |mod.ri | r | r | i
-13 |neg | r | r
-14 |or.rr | r | r | r
-15 |or.ri | r | r | i
-16 |and.rr | r | r | r
-17 |and.ri | r | r | i
-18 |xor.rr | r | r | r
-19 |xor.ri | r | r | i
-20 |shl.rr | r | r | r
-21 |shl.ri | r | r | i
-22 |shr.rr | r | r | r
-23 |shr.ri | r | r | i
-24 |not | r | r
-25 |push.r | r
-26 |push.i | i
-27 |pop | r
-28 |put.rr | r | r
-29 |put.ri | r | i
-30 |put.ir | i | r
-31 |put.ii | i | i
-32 |get.r | r | r
-33 |get.i | r | i
-34 |out.rr | r | r
-35 |out.ri | r | i
-36 |out.ir | i | r
-37 |out.ii | i | i
-38 |in.r | r | r
-39 |in.i | r | i
-40 |int.r | r
-41 |int.i | i
-42 |cmp.rr | r | r
-43 |cmp.ri | r | i
-44 |jmp.r | r
-45 |jmp.i | i
-46 |jls.r | r
-47 |jls.i | i
-48 |jgr.r | r
-49 |jgr.i | i
-50 |jne.r | r
-51 |jne.i | i
-52 |jeq.r | r
-53 |jeq.i | i
-54 |jge.r | r
-55 |jge.i | i
-56 |jle.r | r
-57 |jle.i | i
-58 |jz.r | r
-59 |jz.i | i
-60 |jnz.r | r
-61 |jnz.i | i
+7 |sub.ir | r | i | r
+8 |mul.rr | r | r | r
+9 |mul.ri | r | r | i
+10 |div.rr | r | r | r
+11 |div.ri | r | r | i
+12 |div.ir | r | r | i
+13 |mod.rr | r | r | r
+14 |mod.ri | r | r | i
+15 |mod.ir | r | i | r
+16 |neg | r | r
+17 |or.rr | r | r | r
+18 |or.ri | r | r | i
+19 |and.rr | r | r | r
+20 |and.ri | r | r | i
+21 |xor.rr | r | r | r
+22 |xor.ri | r | r | i
+23 |shl.rr | r | r | r
+24 |shl.ri | r | r | i
+25 |shl.ir | r | i | r
+26 |shr.rr | r | r | r
+27 |shr.ri | r | r | i
+28 |shr.ir | r | i | r
+29 |not | r | r
+30 |push.r | r
+31 |push.i | i
+32 |pop | r
+33 |put.rr | r | r
+34 |put.ri | r | i
+35 |put.ir | i | r
+36 |put.ii | i | i
+37 |get.r | r | r
+38 |get.i | r | i
+39 |out.rr | r | r
+40 |out.ri | r | i
+41 |out.ir | i | r
+42 |out.ii | i | i
+43 |in.r | r | r
+44 |in.i | r | i
+45 |int.r | r
+46 |int.i | i
+47 |cmp.rr | r | r
+48 |cmp.ri | r | i
+49 |cmp.ir | i | r
+50 |jmp.r | r
+51 |jmp.i | i
+52 |jls.r | r
+53 |jls.i | i
+54 |jgr.r | r
+55 |jgr.i | i
+56 |jne.r | r
+57 |jne.i | i
+58 |jeq.r | r
+59 |jeq.i | i
+60 |jge.r | r
+61 |jge.i | i
+62 |jle.r | r
+63 |jle.i | i
+64 |jz.r | r
+65 |jz.i | i
+66 |jnz.r | r
+67 |jnz.i | i
 
 ports
 
