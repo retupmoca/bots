@@ -5,7 +5,7 @@
 
 #include "struct.h"
 
-#define OPCOUNT 7
+#define OPCOUNT 62
 
 typedef struct {
     uint8_t size;
@@ -13,13 +13,6 @@ typedef struct {
     uint8_t arg_sizes[3];
     void (*execute)(machine*);
 } opdata;
-
-void op_rset(machine*);
-void op_nop(machine*);
-void op_ldi(machine*);
-void op_add(machine*);
-void op_out(machine*);
-void op_in(machine*);
 
 opdata oplist[OPCOUNT];
 
