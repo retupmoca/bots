@@ -49,7 +49,160 @@ void op_sub_ir(machine* m) {
     m->registers[m->args[0]] = m->args[1] - m->registers[m->args[2]];
 }
 
-void op_out(machine* m) {
+void op_mul_rr(machine* m) {
+	m->registers[m->args[0]] = m->registers[m->args[1]] * m->registers[m->args[2]];
+}
+
+void op_mul_ri(machine* m) {
+	m->registers[m->args[0]] = m->registers[m->args[1]] * m->args[2];
+}
+
+void op_div_rr(machine* m) {
+
+}
+
+void op_div_ri(machine* m) {
+
+}
+
+void op_div_ir(machine* m) {
+
+}
+
+void op_mod_rr(machine* m) {
+
+}
+
+void op_mod_ri(machine* m) {
+
+}
+
+void op_mod_ir(machine* m) {
+
+}
+
+void op_neg(machine* m) {
+
+}
+
+void op_or_rr(machine* m) {
+	
+}
+
+void op_or_ri(machine* m) {
+
+}
+
+void op_and_rr(machine* m) {
+
+}
+
+void op_and_ri(machine* m) {
+
+}
+
+void op_xor_rr(machine* m) {
+
+}
+
+void op_xor_ri(machine* m) {
+
+}
+
+void op_shl_rr(machine* m) {
+
+}
+
+void op_shl_ri(machine* m) {
+}
+
+void op_shl_ir(machine* m) {}
+
+void op_shr_rr(machine* m) {}
+
+void op_shr_ri(machine* m) {}
+
+void op_shr_ir(machine* m) {}
+
+void op_not(machine* m) {}
+
+void op_push_r(machine* m) {}
+
+void op_push_i(machine* m) {}
+
+void op_pop(machine* m) {}
+
+void op_put_rr(machine* m) {}
+
+void op_put_ri(machine* m) {}
+
+void op_put_ir(machine* m) {}
+
+void op_put_ii(machine* m) {}
+
+void op_get_r(machine* m) {}
+
+void op_get_i(machine* m) {}
+
+void op_out_rr(machine* m) {}
+
+void op_out_ri(machine* m) {}
+
+void op_out_ir(machine* m) {}
+
+void op_out_ii(machine* m) {}
+
+void op_in_r(machine* m) {}
+
+void op_in_i(machine* m) {}
+
+void op_int_r(machine* m) {}
+
+void op_int_i(machine* m) {}
+
+void op_cmp_rr(machine* m) {}
+
+void op_cmp_ri(machine* m) {}
+
+void op_cmp_ir(machine* m) {}
+
+void op_jmp_r(machine* m) {}
+
+void op_jmp_i(machine* m) {}
+
+void op_jls_r(machine* m) {}
+
+void op_jls_i(machine* m) {}
+
+void op_jgr_r(machine* m) {}
+
+void op_jgr_i(machine* m) {}
+
+void op_jne_r(machine* m) {}
+
+void op_jne_i(machine* m) {}
+
+void op_jeq_r(machine* m) {}
+
+void op_jeq_i(machine* m) {}
+
+void op_jge_r(machine* m) {}
+
+void op_jge_i(machine* m) {}
+
+void op_jle_r(machine* m) {}
+
+void op_jle_i(machine* m) {}
+
+void op_jz_r(machine* m) {}
+
+void op_jz_i(machine* m) {}
+
+void op_jnz_r(machine* m) {}
+
+void op_jnz_i(machine* m) {}
+
+/*void op_out(machine* m) {
     m->ports[m->args[0]] = m->args[1];
 }
 
@@ -61,10 +214,10 @@ void op_eint(machine* m) {
     if(int_actions[m->args[0]]){
         (*int_actions[m->args[0]])(m);
     }
-}
+}*/
 
 opdata oplist[OPCOUNT] = {
-  { 1, 0, {}, &op_nop },
+  { 1, 0, {0}, &op_nop },
 
   { 3, 2, {1, 1}, &op_mov_r },
   { 4, 2, {1, 2}, &op_mov_i },
