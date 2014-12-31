@@ -1,0 +1,25 @@
+all: bots.exe asm.exe
+
+bots.exe: main.obj ops.obj machine.obj world.obj
+    cl /o bots.exe main.obj ops.obj machine.obj world.obj
+
+asm.exe: asm_main.obj ops.obj
+    cl /o asm.exe asm_main.obj ops.obj
+
+asm_main.obj: asm_main.c
+    cl /c asm_main.c
+
+main.obj: main.c
+    cl /c main.c
+
+ops.obj: ops.c
+    cl /c ops.c
+
+machine.obj: machine.c
+    cl /c machine.c
+
+world.obj: world.c
+    cl /c world.c
+
+clean:
+    del *exe *obj
