@@ -50,95 +50,114 @@ void op_sub_ir(machine* m) {
 }
 
 void op_mul_rr(machine* m) {
-	m->registers[m->args[0]] = m->registers[m->args[1]] * m->registers[m->args[2]];
+    m->registers[m->args[0]] = m->registers[m->args[1]] * m->registers[m->args[2]];
 }
 
 void op_mul_ri(machine* m) {
-	m->registers[m->args[0]] = m->registers[m->args[1]] * m->args[2];
+    m->registers[m->args[0]] = m->registers[m->args[1]] * m->args[2];
 }
 
 void op_div_rr(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] / m->registers[m->args[2]];
 }
 
 void op_div_ri(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] / m->args[2];
 }
 
 void op_div_ir(machine* m) {
-
+    m->registers[m->args[0]] = m->args[1] / m->registers[m->args[2]];
 }
 
 void op_mod_rr(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] % m->registers[m->args[2]];
 }
 
 void op_mod_ri(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] % m->args[2];
 }
 
 void op_mod_ir(machine* m) {
-
+    m->registers[m->args[0]] = m->args[1] % m->registers[m->args[2]];
 }
 
 void op_neg(machine* m) {
-
+    m->registers[m->args[0]] = 0 - m->registers[m->args[1]];
 }
 
 void op_or_rr(machine* m) {
-	
+    m->registers[m->args[0]] = m->registers[m->args[1]] | m->registers[m->args[2]];
 }
 
 void op_or_ri(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] | m->args[2];
 }
 
 void op_and_rr(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] & m->registers[m->args[2]];
 }
 
 void op_and_ri(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] & m->args[2];
 }
 
 void op_xor_rr(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] ^ m->registers[m->args[2]];
 }
 
 void op_xor_ri(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] ^ m->args[2];
 }
 
 void op_shl_rr(machine* m) {
-
+    m->registers[m->args[0]] = m->registers[m->args[1]] << m->registers[m->args[2]];
 }
 
 void op_shl_ri(machine* m) {
+    m->registers[m->args[0]] = m->registers[m->args[1]] << m->args[2];
 }
 
-void op_shl_ir(machine* m) {}
+void op_shl_ir(machine* m) {
+    m->registers[m->args[0]] = m->args[1] << m->registers[m->args[2]];
+}
 
-void op_shr_rr(machine* m) {}
+void op_shr_rr(machine* m) {
+    m->registers[m->args[0]] = m->registers[m->args[1]] >> m->registers[m->args[2]];
+}
 
-void op_shr_ri(machine* m) {}
+void op_shr_ri(machine* m) {
+    m->registers[m->args[0]] = m->registers[m->args[1]] >> m->args[2];
+}
 
-void op_shr_ir(machine* m) {}
+void op_shr_ir(machine* m) {
+    m->registers[m->args[0]] = m->args[1] >> m->registers[m->args[2]];
+}
 
-void op_not(machine* m) {}
+void op_not(machine* m) {
+    m->registers[m->args[0]] = ~ m->registers[m->args[1]];
+}
 
+/* push/pop use registers 1:2 as the stack pointer */
 void op_push_r(machine* m) {}
-
 void op_push_i(machine* m) {}
-
 void op_pop(machine* m) {}
+/**/
 
-void op_put_rr(machine* m) {}
+void op_put_rr(machine* m) {
+    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]];
+}
 
-void op_put_ri(machine* m) {}
+void op_put_ri(machine* m) {
+    m->memory[m->registers[m->args[0]]] = m->args[1];
+}
 
-void op_put_ir(machine* m) {}
+void op_put_ir(machine* m) {
+    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]];
+}
 
-void op_put_ii(machine* m) {}
+void op_put_ii(machine* m) {
+    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]];
+}
 
 void op_get_r(machine* m) {}
 
@@ -160,47 +179,171 @@ void op_int_r(machine* m) {}
 
 void op_int_i(machine* m) {}
 
-void op_cmp_rr(machine* m) {}
+/* cmp and all jumps use register 0 for flags */
+static void set_compare_flags(machine* m, uint16_t val_a, uint16_t val_b) {
+    m->registers[0] = m->registers[0] & 0x0fff;
+    
+    if(val_a < val_b)
+        m->registers[0] = m->registers[0] | 0x8000;
+    if(val_a > val_b)
+        m->registers[0] = m->registers[0] | 0x4000;
+    if(val_a == val_b)
+        m->registers[0] = m->registers[0] | 0x2000;
+    if(val_a == 0 && val_b == 0)
+        m->registers[0] = m->registers[0] | 0x1000;
+}
 
-void op_cmp_ri(machine* m) {}
+void op_cmp_rr(machine* m) {
+    set_compare_flags(m, m->registers[m->args[0]], m->registers[m->args[1]]);
+}
 
-void op_cmp_ir(machine* m) {}
+void op_cmp_ri(machine* m) {
+    set_compare_flags(m, m->registers[m->args[0]], m->args[1]);
+}
 
-void op_jmp_r(machine* m) {}
+void op_cmp_ir(machine* m) {
+    set_compare_flags(m, m->args[0], m->registers[m->args[1]]);
+}
 
-void op_jmp_i(machine* m) {}
+void op_jmp_r(machine* m) {
+    m->fetch_pc = m->registers[m->args[0]];
+    m->decode_ready = 0;
+    m->execute_ready = 0;
+}
 
-void op_jls_r(machine* m) {}
+void op_jmp_i(machine* m) {
+    m->fetch_pc = m->args[0];
+    m->decode_ready = 0;
+    m->execute_ready = 0;
+}
 
-void op_jls_i(machine* m) {}
+void op_jls_r(machine* m) {
+    if(m->registers[0] & 0x8000){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jgr_r(machine* m) {}
+void op_jls_i(machine* m) {
+    if(m->registers[0] & 0x8000){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jgr_i(machine* m) {}
+void op_jgr_r(machine* m) {
+    if(m->registers[0] & 0x4000){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jne_r(machine* m) {}
+void op_jgr_i(machine* m) {
+    if(m->registers[0] & 0x4000){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jne_i(machine* m) {}
+void op_jne_r(machine* m) {
+    if(!(m->registers[0] & 0x2000)){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jeq_r(machine* m) {}
+void op_jne_i(machine* m) {
+    if(!(m->registers[0] & 0x2000)){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jeq_i(machine* m) {}
+void op_jeq_r(machine* m) {
+    if(m->registers[0] & 0x2000){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jge_r(machine* m) {}
+void op_jeq_i(machine* m) {
+    if(m->registers[0] & 0x2000){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jge_i(machine* m) {}
+void op_jge_r(machine* m) {
+    if(m->registers[0] & 0x6000){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jle_r(machine* m) {}
+void op_jge_i(machine* m) {
+    if(m->registers[0] & 0x6000){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jle_i(machine* m) {}
+void op_jle_r(machine* m) {
+    if(m->registers[0] & 0xa000){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jz_r(machine* m) {}
+void op_jle_i(machine* m) {
+    if(m->registers[0] & 0xa000){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jz_i(machine* m) {}
+void op_jz_r(machine* m) {
+    if(m->registers[0] & 0x1000){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jnz_r(machine* m) {}
+void op_jz_i(machine* m) {
+    if(m->registers[0] & 0x1000){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
-void op_jnz_i(machine* m) {}
+void op_jnz_r(machine* m) {
+    if(!(m->registers[0] & 0x1000)){
+        m->fetch_pc = m->registers[m->args[0]];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
+
+void op_jnz_i(machine* m) {
+    if(!(m->registers[0] & 0x1000)){
+        m->fetch_pc = m->args[0];
+        m->decode_ready = 0;
+        m->execute_ready = 0;
+    }
+}
 
 /*void op_out(machine* m) {
     m->ports[m->args[0]] = m->args[1];
