@@ -137,47 +137,92 @@ void op_not(machine* m) {
     m->registers[m->args[0]] = ~ m->registers[m->args[1]];
 }
 
-/* push/pop use registers 1:2 as the stack pointer */
-void op_push_r(machine* m) {}
-void op_push_i(machine* m) {}
-void op_pop(machine* m) {}
+/* push/pop use register 1 as the stack pointer */
+/* pointer is assumed to be at the end of usable memory and grows down */
+void op_push_r(machine* m) {
+    m->registers[1] -= 2;
+    m->memory[m->registers[1]] = m->args[0] >> 8;
+    m->memory[m->registers[1] + 1] = m->args[0] & 0xff;
+}
+void op_push_i(machine* m) {
+    m->registers[1] -= 2;
+    m->memory[m->registers[1]] = m->args[0] >> 8;
+    m->memory[m->registers[1] + 1] = m->args[0] & 0xff;
+}
+void op_pop(machine* m) {
+    m->registers[m->args[0]] = m->memory[m->registers[1]] << 8;
+    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[1] + 1];
+    m->registers[1] += 2;
+}
 /**/
 
 void op_put_rr(machine* m) {
-    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]];
+    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]] >> 8;
+    m->memory[m->registers[m->args[0]] + 1] = m->registers[m->args[1]] & 0xff;
 }
 
 void op_put_ri(machine* m) {
-    m->memory[m->registers[m->args[0]]] = m->args[1];
+    m->memory[m->registers[m->args[0]]] = m->args[1] >> 8;
+    m->memory[m->registers[m->args[0]] + 1] = m->args[1] & 0xff;
 }
 
 void op_put_ir(machine* m) {
-    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]];
+    m->memory[m->args[0]] = m->registers[m->args[1]] >> 8;
+    m->memory[m->args[0] + 1] = m->registers[m->args[1]] & 0xff;
 }
 
 void op_put_ii(machine* m) {
-    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]];
+    m->memory[m->args[0]] = m->args[1] >> 8;
+    m->memory[m->args[0] + 1] = m->args[1] & 0xff;
 }
 
-void op_get_r(machine* m) {}
+void op_get_r(machine* m) {
+    m->registers[m->args[0]] = m->memory[m->registers[m->args[1]]] << 8;
+    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[m->args[1]] + 1];
+}
 
-void op_get_i(machine* m) {}
+void op_get_i(machine* m) {
+    m->registers[m->args[0]] = m->memory[m->args[1]] << 8;
+    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->args[1] + 1];
+}
 
-void op_out_rr(machine* m) {}
+void op_out_rr(machine* m) {
+    m->ports[m->registers[m->args[0]]] = m->registers[m->args[1]] >> 8;
+    m->ports[m->registers[m->args[0]] + 1] = m->registers[m->args[1]] & 0xff;
+}
 
-void op_out_ri(machine* m) {}
+void op_out_ri(machine* m) {
+    m->ports[m->registers[m->args[0]]] = m->args[1] >> 8;
+    m->ports[m->registers[m->args[0]] + 1] = m->args[1] & 0xff;
+}
 
-void op_out_ir(machine* m) {}
+void op_out_ir(machine* m) {
+    m->ports[m->args[0]] = m->registers[m->args[1]] >> 8;
+    m->ports[m->args[0] + 1] = m->registers[m->args[1]] & 0xff;
+}
 
-void op_out_ii(machine* m) {}
+void op_out_ii(machine* m) {
+    m->ports[m->args[0]] = m->args[1] >> 8;
+    m->ports[m->args[0] + 1] = m->args[1] & 0xff;
+}
 
-void op_in_r(machine* m) {}
+void op_in_r(machine* m) {
+    m->ports[m->args[0]] = m->memory[m->registers[m->args[1]]] << 8;
+    m->ports[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[m->args[1]] + 1];
+}
 
-void op_in_i(machine* m) {}
+void op_in_i(machine* m) {
+    m->ports[m->args[0]] = m->memory[m->args[1]] << 8;
+    m->ports[m->args[0]] = m->registers[m->args[0]] | m->memory[m->args[1] + 1];
+}
 
-void op_int_r(machine* m) {}
+void op_int_r(machine* m) {
+    (*int_actions[m->registers[m->args[0]]])(m);
+}
 
-void op_int_i(machine* m) {}
+void op_int_i(machine* m) {
+    (*int_actions[m->args[0]])(m);
+}
 
 /* cmp and all jumps use register 0 for flags */
 static void set_compare_flags(machine* m, uint16_t val_a, uint16_t val_b) {
