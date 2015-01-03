@@ -6,6 +6,11 @@
 #include "world.h"
 #include "ops.h"
 
+#ifdef _WIN32
+# include <windows.h>
+# define sleep(x) Sleep(x * 1000)
+#endif
+
 int main(int argc, char *argv[]) {
     world w = { 0 };
     machine m1 = { 0 };
@@ -24,23 +29,15 @@ int main(int argc, char *argv[]) {
             fclose(file);
         }
     } else {
-        /* test program */
-        /* out 3 127 */
-        m1.memory[0] = 4;
-        m1.memory[1] = 3;
-        m1.memory[2] = 127;
-
-        /* out 4 5 */
-        m1.memory[3] = 4;
-        m1.memory[4] = 4;
-        m1.memory[5] = 5;
-        /* end test program */
+        printf("Please provide a single robot\n");
     }
 
     m1.mem_max=127;
     world_add_bot(&w, &m1, &mp1);
     while(1) {
         world_tick(&w);
+        printf("Bot position: %i:%i\n", mp1.x, mp1.y);
+        sleep(1);
     }
     return 0;
 }
