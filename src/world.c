@@ -8,15 +8,20 @@ void world_tick(world* w){
     int i = 0;
     /* physics */
     for(i=0; i < w->botcount; i++){
+        if(w->botdata[i]->health == 0)
+            continue;
         /* turn, etc */
         uint16_t throttle;
         uint16_t steering;
+        uint16_t turret_steering;
+        uint16_t scanner_steering;
         
         throttle = w->bots[i]->ports[0] << 8;
         throttle = throttle | w->bots[i]->ports[1];
         
         steering = w->bots[i]->ports[2] << 8;
         steering = steering | w->bots[i]->ports[3];
+        steering = steering % 256;
         
         w->botdata[i]->heading = (w->botdata[i]->heading + steering) % 256;
         w->bots[i]->ports[2] = 0;
@@ -30,10 +35,42 @@ void world_tick(world* w){
         int dy = floor(0.5 + (dist * sin(rangle)));
         w->botdata[i]->x += dx;
         w->botdata[i]->y += dy;
+        
+        /* turn turret */
+        turret_steering = w->bots[i]->ports[4] << 8;
+        turret_steering = turret_steering | w->bots[i]->ports[5];
+        if(w->bots[i]->ports[7]) /* turret keepshift */
+            turret_steering = (turret_steering + 256 - steering) % 256;
+        
+        w->botdata[i]->turret_offset = (w->botdata[i]->turret_offset + turret_steering) % 256;
+        w->bots[i]->ports[4] = 0;
+        w->bots[i]->ports[5] = 0;
+        
+        /* turn scanner */
+        scanner_steering = w->bots[i]->ports[8] << 8;
+        scanner_steering = scanner_steering | w->bots[i]->ports[9];
+        
+        if(w->bots[i]->ports[0x0b]) /* scanner hull keepshift */
+            scanner_steering = (scanner_steering + 256 - steering) % 256;
+        
+        if(w->bots[i]->ports[0x0d]) /* scanner gun keepshift */
+            scanner_steering = (scanner_steering + 256 - turret_steering) % 256;
+        
+        /* if we're keepshifting on the gun, but not the hull, we need to undo the
+         * turret steering caused by its own keepshift
+         */
+        if(w->bots[i]->ports[0x0d] && w->bots[i]->ports[7] && !w->bots[i]->ports[0x0b])
+            scanner_steering = (scanner_steering + steering) % 256;
+        
+        w->botdata[i]->scanner_offset = (w->botdata[i]->scanner_offset + scanner_steering) % 256;
+        w->bots[i]->ports[8] = 0;
+        w->bots[i]->ports[9] = 0;
     }
 
     /* execute */
     for(i=0; i < w->botcount; i++){
+        if(w->botdata[i]->health == 0)
+            continue;
         /* we do these "backwords" in order to simulate a 3-stage pipeline */
         machine_execute(w->bots[i]);
         machine_decode(w->bots[i]);
@@ -47,6 +84,7 @@ void world_add_bot(world* w, machine* m, bot_physics* p) {
     }
     m->world = w;
     m->machine_id = w->botcount;
+    m->ports[0x17] = m->machine_id;
     w->bots[w->botcount] = m;
     w->botdata[w->botcount] = p;
     w->botcount++;

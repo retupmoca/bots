@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
     bot_physics mp1 = { 0 };
     mp1.x = 25;
     mp1.y = 50;
+    mp1.health = 100;
 
     if(argc == 2){
         FILE *file = fopen(argv[1], "r");

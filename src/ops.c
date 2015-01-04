@@ -1,20 +1,30 @@
 #include "ops.h"
 
-void op_rset(machine* m) {
+void int_rset(machine* m) {
     m->fetch_pc = 0;
     m->decode_ready = 0;
     m->execute_ready = 0;
 }
 
-void int_reqpos(machine* m) {
-    m->ports[1] = m->world->botdata[m->machine_id]->x;
-    m->ports[2] = m->world->botdata[m->machine_id]->y;
+void int_destruct(machine* m) {
+    m->world->botdata[m->machine_id]->health = 0;
+}
+
+void int_scan(machine* m) {
+    /* stub */
+}
+
+void int_fire(machine* m) {
+    /* stub */
 }
 
 typedef void (*action)(machine*);
 
-action int_actions[16] = {
-    &int_reqpos
+action int_actions[4] = {
+    &int_rset,
+    &int_destruct,
+    &int_scan,
+    &int_fire
 };
 
 void op_nop(machine* m) {
@@ -389,20 +399,6 @@ void op_jnz_i(machine* m) {
         m->execute_ready = 0;
     }
 }
-
-/*void op_out(machine* m) {
-    m->ports[m->args[0]] = m->args[1];
-}
-
-void op_in(machine* m) {
-    m->registers[m->args[0]] = m->ports[m->args[1]];
-}
-
-void op_eint(machine* m) {
-    if(int_actions[m->args[0]]){
-        (*int_actions[m->args[0]])(m);
-    }
-}*/
 
 opdata oplist[OPCOUNT] = {
   { 1, 0, {0}, &op_nop },
