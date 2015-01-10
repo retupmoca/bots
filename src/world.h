@@ -6,6 +6,8 @@
 #ifdef _WIN32
 #ifdef BUILD_SHARED
 #define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT __declspec(dllimport)
 #endif
 #endif
 

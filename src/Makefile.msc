@@ -1,10 +1,10 @@
-all: bots.exe asm.exe
+all: bots.exe asm.exe bots.dll
 
-bots.exe: main.obj ops.obj machine.obj world.obj
-    cl /o bots.exe main.obj ops.obj machine.obj world.obj
+bots.exe: main.obj bots.dll
+    cl /o bots.exe main.obj bots.lib
 
-asm.exe: asm_main.obj ops.obj
-    cl /o asm.exe asm_main.obj ops.obj
+asm.exe: asm_main.obj bots.dll
+    cl /o asm.exe asm_main.obj bots.lib
 
 asm_main.obj: asm_main.c
     cl /c asm_main.c
@@ -12,14 +12,17 @@ asm_main.obj: asm_main.c
 main.obj: main.c
     cl /c main.c
 
+bots.dll: ops.obj machine.obj world.obj
+    cl /LD /o bots.dll ops.obj machine.obj world.obj
+
 ops.obj: ops.c
-    cl /c ops.c
+    cl /c /DBUILD_SHARED ops.c
 
 machine.obj: machine.c
-    cl /c machine.c
+    cl /c /DBUILD_SHARED machine.c
 
 world.obj: world.c
-    cl /c world.c
+    cl /c /DBUILD_SHARED world.c
 
 clean:
-    del *exe *obj
+    del *exe *obj *dll *lib *exp

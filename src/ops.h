@@ -7,6 +7,15 @@
 
 #define OPCOUNT 68
 
+#define DLL_EXPORT
+#ifdef _WIN32
+#ifdef BUILD_SHARED
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT __declspec(dllimport)
+#endif
+#endif
+
 typedef struct {
     uint8_t size;
     uint8_t argcount;
@@ -14,6 +23,6 @@ typedef struct {
     void (*execute)(machine*);
 } opdata;
 
-opdata oplist[OPCOUNT];
+DLL_EXPORT opdata oplist[OPCOUNT];
 
 #endif
