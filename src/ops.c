@@ -11,11 +11,83 @@ void int_destruct(machine* m) {
 }
 
 void int_scan(machine* m) {
-    /* stub */
+    /* get global heading of scanner */
+    uint32_t heading = m->world->botdata[m->machine_id]->heading + m->world->botdata[m->machine_id]->turret_offset + m->world->botdata[m->machine_id]->scanner_offset;
+    
+    /* check angle and range of each bot against scan parameters */
+    int radar_arc = m->ports[0x0f];
+    int radar_range = m->ports[0x10] << 8;
+    radar_range |= m->ports[0x11];
+    
+    uint8_t radar_left = (heading - radar_arc) % 256;
+    uint8_t radar_right = (heading + radar_arc) % 256;
+    
+    int seen_index = 0;
+    int seen_bots[256] = { -1 };
+    int32_t seen_bot_range[256];
+    int seen_bot_angle[256];
+    
+    for(int i=0; i<m->world->botcount; i++){
+        if(i == m->machine_id)
+            continue;
+        
+        int32_t x = m->world->botdata[i]->x - m->world->botdata[m->machine_id]->x;
+        int32_t y = m->world->botdata[i]->y - m->world->botdata[m->machine_id]->y;
+        
+        uint8_t angle = floor(atan2(y, x) * 128 / M_PI) % 256;
+        int32_t range = floor(sqrt(y**2 + x**2));
+        
+        if(   range <= radar_range
+           && (   (radar_left < radar_right && angle > radar_left && angle < radar_right)
+               || (radar_left > radar_right && (angle > radar_left || angle < radar_right)))) {
+            /* we can see bot i */
+            seen_bot_range[seen_index] = range;
+            seen_bot_angle[seen_index] = angle;
+            seen_bots[seen_index++] = i;
+        }
+    }
+    
+    /* load closest seen bot into ports */
+    uint16_t lowest_range = 0;
+    m->ports[0x12] = 0;
+    m->ports[0x13] = 0;
+    m->ports[0x14] = 0;
+    m->ports[0x15] = 0;
+    for(int i=0; seen_bots[i] > -1; i++) {
+        if(seen_bot_range[i] < lowest_range || lowest_range == 0) {
+            lowest_range = seen_bot_range[i];
+            m->ports[0x12] = lowest_range >> 8;
+            m->ports[0x13] = lowest_range & 0xff;
+            
+            /* TODO: give some kind of scanner offset instead of bearing */
+            m->ports[0x14] = seen_bot_angle[i] >> 8;
+            m->ports[0x15] = seen_bot_angle[i] & 0xff;
+        }
+    }
 }
 
 void int_fire(machine* m) {
-    /* stub */
+    shot* s = malloc(sizeof(shot));
+    
+    /* get global heading of gun */
+    s->heading = m->world->botdata[m->machine_id]->heading + m->world->botdata[m->machine_id]->turret_offset;
+    
+    /* move just far enough that we don't hit ourselves */
+    s->x = m->world->botdata[m->machine_id]->x;
+    s->y = m->world->botdata[m->machine_id]->y;
+        
+    double rangle = (s->heading-64) * M_PI / 128;
+    int dist = 6;
+    int dx = floor(0.5 + (dist * cos(rangle)));
+    int dy = floor(0.5 + (dist * sin(rangle)));
+    s->x += dx;
+    s->y += dy;
+    
+    /* add shot to world */
+    int i = 0;
+    for(; m->world->shots[i]; i++)
+        ;
+    m->world->shots[i] = s;
 }
 
 typedef void (*action)(machine*);

@@ -6,7 +6,68 @@
 
 void world_tick(world* w){
     int i = 0;
+    shot* s = NULL;
     /* physics */
+    /* shots */
+    for(s=w->shots[0], i=0; s; s=w->shots[++i]) {
+        /* check collision */
+        int hit = 0;
+        for(int j=0; j < w->botcount; j++){
+            if(   s->x >= w->botdata[j]->x - 5
+               && s->x <= w->botdata[j]->x + 5
+               && s->y >= w->botdata[j]->y - 5
+               && s->y <= w->botdata[j]->y + 5){
+                # hit!
+                hit = 1;
+                
+                /* record damage */
+                w->botdata[j]->health -= 5;
+                if(w->botdata[j]->health < 0)
+                    w->botdata[j]->health = 0;
+                
+                /* delete the shot */
+                free(s);
+                for(int k=i; w->shots[k]; k++){
+                    w->shots[k] = w->shots[k+1];
+                }
+                i--;
+                break;
+            }
+        }
+        if(hit)
+            continue;
+        
+        /* move the shots */
+        double rangle = (s->heading-64) * M_PI / 128;
+        int dist = 5;
+        int dx = floor(0.5 + (dist * cos(rangle)));
+        int dy = floor(0.5 + (dist * sin(rangle)));
+        s->x += dx;
+        s->y += dy;
+        
+        /* check collision again */
+        for(int j=0; j < w->botcount; j++){
+            if(   s->x >= w->botdata[j]->x - 5
+               && s->x <= w->botdata[j]->x + 5
+               && s->y >= w->botdata[j]->y - 5
+               && s->y <= w->botdata[j]->y + 5){
+                # hit!
+                
+                /* record damage */
+                w->botdata[j]->health -= 5;
+                if(w->botdata[j]->health < 0)
+                    w->botdata[j]->health = 0;
+                
+                /* delete the shot */
+                free(s);
+                for(int k=i; w->shots[k]; k++){
+                    w->shots[k] = w->shots[k+1];
+                }
+                i--;
+            }
+        }
+    }
+    /* bots */
     for(i=0; i < w->botcount; i++){
         if(w->botdata[i]->health == 0)
             continue;

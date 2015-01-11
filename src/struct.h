@@ -41,10 +41,17 @@ typedef struct {
     uint8_t health;
 } bot_physics;
 
+typedef struct {
+    int32_t x;
+    int32_t y;
+    uint32_t heading;
+} shot;
+
 struct s_world {
     uint8_t botcount;
     machine* bots[16];
     bot_physics* botdata[16];
+    shot* shots[16*1024]; /* we've got the memory... */
 };
 
 #endif
