@@ -1,3 +1,6 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "ops.h"
 
 void int_rset(machine* m) {
@@ -34,8 +37,8 @@ void int_scan(machine* m) {
         int32_t x = m->world->botdata[i]->x - m->world->botdata[m->machine_id]->x;
         int32_t y = m->world->botdata[i]->y - m->world->botdata[m->machine_id]->y;
         
-        uint8_t angle = floor(atan2(y, x) * 128 / M_PI) % 256;
-        int32_t range = floor(sqrt(y**2 + x**2));
+        uint8_t angle = (int)(atan2(y, x) * 128 / M_PI) % 256;
+        int32_t range = (int)(sqrt(y * y + x * x));
         
         if(   range <= radar_range
            && (   (radar_left < radar_right && angle > radar_left && angle < radar_right)

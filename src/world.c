@@ -6,7 +6,7 @@
 
 void world_tick(world* w){
     int i = 0;
-    shot* s = NULL;
+    shot* s = 0;
     /* physics */
     /* shots */
     for(s=w->shots[0], i=0; s; s=w->shots[++i]) {
@@ -17,7 +17,7 @@ void world_tick(world* w){
                && s->x <= w->botdata[j]->x + 5
                && s->y >= w->botdata[j]->y - 5
                && s->y <= w->botdata[j]->y + 5){
-                # hit!
+                /* hit! */
                 hit = 1;
                 
                 /* record damage */
@@ -51,7 +51,7 @@ void world_tick(world* w){
                && s->x <= w->botdata[j]->x + 5
                && s->y >= w->botdata[j]->y - 5
                && s->y <= w->botdata[j]->y + 5){
-                # hit!
+                /* hit! */
                 
                 /* record damage */
                 w->botdata[j]->health -= 5;
