@@ -1,3 +1,4 @@
+PREFIX = /usr/local
 CFLAGS = -g -fPIC -Iinclude
 
 all : bin/bots bin/asm lib/libbots.so
@@ -10,6 +11,11 @@ bin/asm : src/asm_main.o lib/libbots.so
 
 lib/libbots.so : src/ops.o src/machine.o src/world.o src/bots.o
 	gcc -g -shared -o lib/libbots.so -lm src/ops.o src/machine.o src/world.o src/bots.o
+
+install :
+	cp bin/* $PREFIX/bin
+	cp lib/* $PREFIX/lib
+	cp -r include/* $PREFIX/include
 
 clean :
 	rm -f src/*o bin/bots bin/asm lib/*so
