@@ -1,4 +1,8 @@
 out.ii 2 128
 out.ii 0 5
-out.ii 2 64
+out.ii 2 16
+mov.i 2 0
+add.ri 2 2 1
+cmp.ri 2 10
+jle.i 19
 jmp.i 10
