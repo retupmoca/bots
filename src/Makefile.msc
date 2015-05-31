@@ -12,8 +12,11 @@ asm_main.obj: asm_main.c
 main.obj: main.c
     cl /c main.c
 
-bots.dll: ops.obj machine.obj world.obj
-    cl /LD /o bots.dll ops.obj machine.obj world.obj
+bots.dll: ops.obj machine.obj world.obj bots.obj
+    cl /LD /o bots.dll ops.obj machine.obj world.obj bots.obj
+
+bots.obj: bots.c
+    cl /c /DBUILD_SHARED bots.c
 
 ops.obj: ops.c
     cl /c /DBUILD_SHARED ops.c

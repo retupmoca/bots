@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "struct.h"
-#include "machine.h"
-#include "world.h"
-#include "ops.h"
+#include "bots.h"
 
 #ifdef _WIN32
 # include <windows.h>
@@ -12,52 +9,34 @@
 #endif
 
 int main(int argc, char *argv[]) {
-    world w = { 0 };
-    machine m1 = { 0 };
-    bot_physics mp1 = { 0 };
-    mp1.x = 25;
-    mp1.y = 50;
-    mp1.health = 100;
-    
-    machine m2 = { 0 };
-    bot_physics mp2 = { 0 };
-    mp2.x = 50;
-    mp2.y = 50;
-    mp2.health = 100;
+    bots_game *g = bots_create_game();
 
-    if(argc == 3){
-        FILE *file = fopen(argv[1], "r");
-        if( file != 0 ){
-            int i = 0;
-            char x;
-            while(i < 128 && (x = fgetc(file)) != EOF){
-                m1.memory[i++] = x;
-            }
-            fclose(file);
+    if(argc == 3) {
+        if(   !bots_add_bot_from_file(g, argv[1])
+           || !bots_add_bot_from_file(g, argv[2])) {
+            printf("Unable to load bots\n");
+            return 1;
         }
-        
-        file = fopen(argv[2], "r");
-        if( file != 0 ){
-            int i = 0;
-            char x;
-            while(i < 128 && (x = fgetc(file)) != EOF){
-                m2.memory[i++] = x;
-            }
-            fclose(file);
-        }
-    } else {
+    }
+    else {
         printf("Please provide two robots\n");
     }
 
-    m1.mem_max=127;
-    m2.mem_max=127;
-    world_add_bot(&w, &m1, &mp1);
-    world_add_bot(&w, &m2, &mp2);
+    /* hack the bots into position
+     * 
+     * We only do this because bots_add_bot doesn't position the bots at all
+     * right now. In the future, it'll position them with some standard
+     * algorithm.
+     */
+    g->tanks[0]->x = 50;
+    g->tanks[0]->y = 50;
+
     while(1) {
-        world_tick(&w);
-        printf("Bot 1 position: %i:%i\n", mp1.x, mp1.y);
-        printf("Bot 2 position: %i:%i\n", mp2.x, mp2.y);
+        bots_tick(g);
+        printf("Bot 1 position: %i:%i\n", g->tanks[0]->x, g->tanks[0]->y);
+        printf("Bot 2 position: %i:%i\n", g->tanks[1]->x, g->tanks[1]->y);
         sleep(1);
     }
+    bots_free_game(g);
     return 0;
 }
