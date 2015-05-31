@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+#include <stdlib.h>
 #include <math.h>
 
 #include "world.h"
@@ -12,7 +13,8 @@ void world_tick(world* w){
     for(s=w->shots[0], i=0; s; s=w->shots[++i]) {
         /* check collision */
         int hit = 0;
-        for(int j=0; j < w->botcount; j++){
+        int j;
+        for(j=0; j < w->botcount; j++){
             if(   s->x >= w->botdata[j]->x - 5
                && s->x <= w->botdata[j]->x + 5
                && s->y >= w->botdata[j]->y - 5
@@ -46,7 +48,7 @@ void world_tick(world* w){
         s->y += dy;
         
         /* check collision again */
-        for(int j=0; j < w->botcount; j++){
+        for(j=0; j < w->botcount; j++){
             if(   s->x >= w->botdata[j]->x - 5
                && s->x <= w->botdata[j]->x + 5
                && s->y >= w->botdata[j]->y - 5
@@ -60,7 +62,8 @@ void world_tick(world* w){
                 
                 /* delete the shot */
                 free(s);
-                for(int k=i; w->shots[k]; k++){
+                int k;
+                for(k=i; w->shots[k]; k++){
                     w->shots[k] = w->shots[k+1];
                 }
                 i--;
