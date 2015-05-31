@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     fread(code, s, 1, fin);
     fclose(fin);
 
-    FILE* out = fopen(argv[2], "w");
+    FILE* out = fopen(argv[2], "wb");
 
     int i = 0;
     int start = 0;

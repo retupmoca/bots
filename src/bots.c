@@ -28,7 +28,7 @@ void bots_free_game(bots_game* g){
 }
 
 char bots_add_bot_from_file(bots_game* g, char* filename) {
-    FILE* f = fopen(filename, "r");
+    FILE* f = fopen(filename, "rb");
     char ret = bots_add_bot_from_handle(g, f);
     fclose(f);
 
