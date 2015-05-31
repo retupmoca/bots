@@ -29,7 +29,8 @@ void world_tick(world* w){
                 
                 /* delete the shot */
                 free(s);
-                for(int k=i; w->shots[k]; k++){
+                int k;
+                for(k=i; w->shots[k]; k++){
                     w->shots[k] = w->shots[k+1];
                 }
                 i--;
