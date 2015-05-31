@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "world.h"
-#include "machine.h"
+#include <bots/world.h>
+#include <bots/machine.h>
 
 void world_tick(world* w){
     int i = 0;

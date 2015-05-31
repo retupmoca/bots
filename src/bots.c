@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "struct.h"
-#include "bots.h"
-#include "machine.h"
-#include "world.h"
-#include "ops.h"
+#include <bots/struct.h>
+#include <bots.h>
+#include <bots/machine.h>
+#include <bots/world.h>
+#include <bots/ops.h>
 
 bots_game* bots_create_game() {
     bots_game* g = (bots_game*)malloc(sizeof(bots_game));

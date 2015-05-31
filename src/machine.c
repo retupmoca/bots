@@ -1,5 +1,5 @@
-#include "machine.h"
-#include "ops.h"
+#include <bots/machine.h>
+#include <bots/ops.h>
 
 void machine_execute(machine* m) {
     if(!m->execute_ready)

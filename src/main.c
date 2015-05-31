@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bots.h"
+#include <bots.h>
 
 #ifdef _WIN32
 # include <windows.h>

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "ops.h"
+#include <bots/ops.h>
 
 typedef struct {
     char* name;

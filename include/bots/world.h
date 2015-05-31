@@ -1,6 +1,6 @@
-#ifndef WORLD_H
-#define WORLD_H
-#include "struct.h"
+#ifndef BOTS_WORLD_H
+#define BOTS_WORLD_H
+#include <bots/struct.h>
 
 #define DLL_EXPORT
 #ifdef _WIN32

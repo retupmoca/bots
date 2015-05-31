@@ -1,9 +1,9 @@
-#ifndef OPS_H
-#define OPS_H
+#ifndef BOTS_OPS_H
+#define BOTS_OPS_H
 
 #include <stdint.h>
 
-#include "struct.h"
+#include <bots/struct.h>
 
 #define OPCOUNT 68
 

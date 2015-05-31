@@ -1,7 +1,7 @@
 #ifndef BOTS_H
 #define BOTS_H
 #include<stdio.h>
-#include "struct.h"
+#include <bots/struct.h>
 
 #define DLL_EXPORT
 #ifdef _WIN32

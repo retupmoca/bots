@@ -1,0 +1,31 @@
+all: bin/bots.exe bin/asm.exe bin/bots.dll
+
+bin/bots.exe: src/main.obj bin/bots.dll
+    cl /Iinclude /o bin/bots.exe src/main.obj bin/bots.lib
+
+bin/asm.exe: src/asm_main.obj bin/bots.dll
+    cl /Iinclude /o bin/asm.exe src/asm_main.obj bin/bots.lib
+
+src/asm_main.obj: src/asm_main.c
+    cl /Iinclude /Fosrc/asm_main.obj /c src/asm_main.c
+
+src/main.obj: src/main.c
+    cl /Iinclude /Fosrc/main.obj /c src/main.c
+
+bin/bots.dll: src/ops.obj src/machine.obj src/world.obj src/bots.obj
+    cl /Iinclude /LD /o bin/bots.dll src/ops.obj src/machine.obj src/world.obj src/bots.obj
+
+src/bots.obj: src/bots.c
+    cl /Iinclude /Fosrc/bots.obj /c /DBUILD_SHARED src/bots.c
+
+src/ops.obj: src/ops.c
+    cl /Iinclude /Fosrc/ops.obj /c /DBUILD_SHARED src/ops.c
+
+src/machine.obj: src/machine.c
+    cl /Iinclude /Fosrc/machine.obj /c /DBUILD_SHARED src/machine.c
+
+src/world.obj: src/world.c
+    cl /Iinclude /Fosrc/world.obj /c /DBUILD_SHARED src/world.c
+
+clean:
+    del bin/*exe src/*obj bin/*dll bin/*lib bin/*exp

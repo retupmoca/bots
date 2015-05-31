@@ -1,7 +1,7 @@
-#ifndef MACHINE_H
-#define MACHINE_H
+#ifndef BOTS_MACHINE_H
+#define BOTS_MACHINE_H
 
-#include "struct.h"
+#include <bots/struct.h>
 
 void machine_execute(machine*);
 void machine_decode(machine*);

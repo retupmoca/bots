@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "ops.h"
+#include <bots/ops.h>
 
 void int_rset(machine* m) {
     m->fetch_pc = 0;
