@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+#include <stdlib.h>
 #include <math.h>
 
 #include "ops.h"
@@ -30,7 +31,8 @@ void int_scan(machine* m) {
     int32_t seen_bot_range[256];
     int seen_bot_angle[256];
     
-    for(int i=0; i<m->world->botcount; i++){
+    int i;
+    for(i=0; i<m->world->botcount; i++){
         if(i == m->machine_id)
             continue;
         
@@ -56,7 +58,7 @@ void int_scan(machine* m) {
     m->ports[0x13] = 0;
     m->ports[0x14] = 0;
     m->ports[0x15] = 0;
-    for(int i=0; seen_bots[i] > -1; i++) {
+    for(i=0; seen_bots[i] > -1; i++) {
         if(seen_bot_range[i] < lowest_range || lowest_range == 0) {
             lowest_range = seen_bot_range[i];
             m->ports[0x12] = lowest_range >> 8;
