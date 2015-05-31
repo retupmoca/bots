@@ -1,8 +1,14 @@
 out.ii 2 128
 out.ii 0 5
+
+!mainloop
 out.ii 2 16
+
+; delay so we aren't stupid fast
 mov.i 2 0
+!delay
 add.ri 2 2 1
 cmp.ri 2 10
-jle.i 19
-jmp.i 10
+jle.i !delay
+
+jmp.i !mainloop

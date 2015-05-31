@@ -81,7 +81,13 @@ asm_opdata mydata[OPCOUNT] = {
 typedef struct {
     char* name;
     char* args[3];
+    int argcount;
 } inst;
+
+typedef struct {
+    char* name;
+    int address;
+} label_pos;
 
 void write_inst(FILE* f, inst* in) {
     int i = 0;
@@ -124,10 +130,23 @@ int main(int argc, char* argv[]) {
     int i = 0;
     int start = 0;
     inst in;
+    inst program[2048]; 
+    int pcount = 0;
+    label_pos labels[1024];
+    int lcount = 0;
     int argcount = 0;
     int numargs = 0;
+    int address = 0;
+    int in_comment = 0;
     for(;i == 0 || code[i-1];i++){
-        if(code[i] == ' ' || code[i] == '\n' || code[i] == '\0'){
+        if(in_comment || code[i] == ';') {
+            in_comment = 1;
+            if(code[i] == '\n' || code[i] == '\0'){
+                start = i+1;
+                in_comment = 0;
+            }
+        }
+        else if(code[i] == ' ' || code[i] == '\n' || code[i] == '\0'){
             if(start == i) {
                 start = i+1;
             } else {
@@ -137,18 +156,28 @@ int main(int argc, char* argv[]) {
                 memcpy(str, code + start, size);
 
                 if(argcount == 0) {
-                    in.name = str;
-                    int i = 0;
-                    char found = 0;
-                    for(;i<OPCOUNT;i++){
-                        if(strcmp(mydata[i].name, in.name) == 0){
-                            numargs = oplist[i].argcount;
-                            found = 1;
-                        }
+                    if(str[0] == '!') {
+                        printf("Found label %s (%d)\n", str, address);
+                        /* label definition */
+                        labels[lcount].name = str;
+                        labels[lcount++].address = address;
+                        argcount--;
                     }
-                    if(!found){
-                        printf("Bad opcode: %s\n", in.name);
-                        return 2;
+                    else {
+                        in.name = str;
+                        int i = 0;
+                        char found = 0;
+                        for(;i<OPCOUNT;i++){
+                            if(strcmp(mydata[i].name, in.name) == 0){
+                                numargs = oplist[i].argcount;
+                                address += oplist[i].size;
+                                found = 1;
+                            }
+                        }
+                        if(!found){
+                            printf("Bad opcode: %s\n", in.name);
+                            return 2;
+                        }
                     }
                 }
                 else
@@ -157,13 +186,8 @@ int main(int argc, char* argv[]) {
                 argcount++;
 
                 if(argcount > numargs) {
-                    printf("Writing instruction %s...\n", in.name);
-                    write_inst(out, &in);
-                    free(in.name);
-                    int j = 1;
-                    for(;j<argcount;j++){
-                        free(in.args[j-1]);
-                    }
+                    in.argcount = argcount;
+                    program[pcount++] = in;
                     argcount = 0;
                     numargs = 0;
                 }
@@ -173,6 +197,42 @@ int main(int argc, char* argv[]) {
     }
 
     free(code);
+
+    for(i = 0; i<pcount; i++){
+        int j = 1;
+        for(;j<program[i].argcount;j++){
+            if(program[i].args[j-1][0] == '!'){
+                /* we have a label access! */
+                int k = 0;
+                int index = -1;
+                for(;k < lcount; k++){
+                    if(strcmp(labels[k].name, program[i].args[j-1]) == 0){
+                        index = k;
+                    }
+                }
+                if(index < 0){
+                    printf("Unable to find label %s\n", program[i].args[j-1]);
+                    return 2;
+                }
+                char* newarg = calloc(256, 1);
+                sprintf(newarg, "%i", labels[index].address);
+                free(program[i].args[j-1]);
+                printf("Translating label %s to %s...\n", labels[index].name, newarg);
+                program[i].args[j-1] = newarg;
+            }
+        }
+    }
+
+    for(i = 0; i<pcount; i++){
+        printf("Writing instruction %s...\n", program[i].name);
+        write_inst(out, &program[i]);
+        free(program[i].name);
+        int j = 1;
+        for(;j<program[i].argcount;j++){
+            free(program[i].args[j-1]);
+        }
+    }
+
     fclose(out);
 
     return 0;
