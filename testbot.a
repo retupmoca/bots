@@ -4,7 +4,7 @@ out.ii 0 5
 !mainloop
 out.ii 2 16
 
-; delay so we aren't stupid fast
+; stay straight for a while
 mov.i 2 0
 !delay
 add.ri 2 2 1
