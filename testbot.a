@@ -4,6 +4,7 @@ out.ii 0 5
 !mainloop
 out.ii 2 16
 out.ii 4 16
+int.i 3
 
 ; stay straight for a while
 mov.i 2 0
