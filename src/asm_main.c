@@ -7,7 +7,7 @@ typedef struct {
     char* name;
 } asm_opdata;
 
-asm_opdata mydata[OPCOUNT] = {
+asm_opdata mydata[BOTS_CPU_OPCOUNT] = {
     { "nop" },
     { "mov.r" },
     { "mov.i" },
@@ -91,15 +91,15 @@ typedef struct {
 
 void write_inst(FILE* f, inst* in) {
     int i = 0;
-    for(;i<OPCOUNT;i++){
+    for(;i<BOTS_CPU_OPCOUNT;i++){
         if(strcmp(mydata[i].name, in->name) == 0){
             putc(i, f);
 
-            int numargs = oplist[i].argcount;
+            int numargs = bots_cpu_oplist[i].argcount;
             int j = 0;
             for(;j < numargs; j++){
                 int32_t piece = atoi(in->args[j]);
-                if(oplist[i].arg_sizes[j] == 2) {
+                if(bots_cpu_oplist[i].arg_sizes[j] == 2) {
                     putc((char)((piece & 0xff00) >> 8), f);
                     putc((char)(piece & 0x00ff), f);
                 } else {
@@ -167,10 +167,10 @@ int main(int argc, char* argv[]) {
                         in.name = str;
                         int i = 0;
                         char found = 0;
-                        for(;i<OPCOUNT;i++){
+                        for(;i<BOTS_CPU_OPCOUNT;i++){
                             if(strcmp(mydata[i].name, in.name) == 0){
-                                numargs = oplist[i].argcount;
-                                address += oplist[i].size;
+                                numargs = bots_cpu_oplist[i].argcount;
+                                address += bots_cpu_oplist[i].size;
                                 found = 1;
                             }
                         }

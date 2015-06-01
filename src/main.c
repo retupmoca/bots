@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <bots.h>
+#include <bots/bots.h>
 
 #ifdef _WIN32
 # include <windows.h>
@@ -9,7 +9,7 @@
 #endif
 
 int main(int argc, char *argv[]) {
-    bots_game *g = bots_create_game();
+    bots_world *g = bots_create_world();
 
     if(argc == 3) {
         if(   !bots_add_bot_from_file(g, argv[1])
@@ -37,6 +37,6 @@ int main(int argc, char *argv[]) {
         printf("Bot 2 position: %i:%i\n", g->tanks[1]->x, g->tanks[1]->y);
         sleep(1);
     }
-    bots_free_game(g);
+    bots_free_world(g);
     return 0;
 }

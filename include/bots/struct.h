@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct s_world world;
+typedef struct _bots_world bots_world;
 
 typedef struct {
     /* cpu */
@@ -25,9 +25,9 @@ typedef struct {
 
     uint8_t ports[24];
 
-    world* world;
-    uint8_t machine_id;
-} machine;
+    bots_world* world;
+    uint8_t bot_id;
+} bots_cpu;
 
 typedef struct {
     int32_t x;
@@ -39,19 +39,19 @@ typedef struct {
     uint32_t scanner_offset;
     
     uint8_t health;
-} bot_physics;
+} bots_tank;
 
 typedef struct {
     int32_t x;
     int32_t y;
     uint32_t heading;
-} shot;
+} bots_shot;
 
-struct s_world {
-    uint8_t botcount;
-    machine* bots[16];
-    bot_physics* botdata[16];
-    shot* shots[16*1024]; /* we've got the memory... */
+struct _bots_world {
+    uint8_t num_tanks;
+    bots_cpu* cpus[16];
+    bots_tank* tanks[16];
+    bots_shot* shots[16*1024]; /* we've got the memory... */
 };
 
 #endif

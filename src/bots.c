@@ -2,39 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bots/struct.h>
-#include <bots.h>
-#include <bots/machine.h>
-#include <bots/world.h>
-#include <bots/ops.h>
+#include <bots/bots.h>
 
-bots_game* bots_create_game() {
-    bots_game* g = (bots_game*)malloc(sizeof(bots_game));
-
-    g->num_tanks = 0;
-    g->_world = (world*)calloc(1, sizeof(world));
+bots_world* bots_create_world() {
+    bots_world* g = (bots_world*)calloc(1, sizeof(bots_world));
 
     return g;
 }
 
-void bots_free_game(bots_game* g){
+void bots_free_world(bots_world* g){
     int i;
     for(i = 0; i < g->num_tanks; i++) {
         free(g->tanks[i]);
         free(g->cpus[i]);
     }
-    free(g->_world);
     free(g);
 }
 
-char bots_add_bot_from_file(bots_game* g, char* filename) {
+char bots_add_bot_from_file(bots_world* g, char* filename) {
     FILE* f = fopen(filename, "rb");
     char ret = bots_add_bot_from_handle(g, f);
     fclose(f);
 
     return ret;
 }
-char bots_add_bot_from_handle(bots_game* g, FILE* file) {
+char bots_add_bot_from_handle(bots_world* g, FILE* file) {
     if(!file){
         return 0;
     }
@@ -48,22 +40,19 @@ char bots_add_bot_from_handle(bots_game* g, FILE* file) {
 
     return bots_add_bot(g, buf, i);
 }
-char bots_add_bot(bots_game* g, char* memory, int size) {
-    machine* cpu = (machine*)calloc(1, sizeof(machine));
-    bot_physics* tank = (bot_physics*)calloc(1, sizeof(bot_physics));
+char bots_add_bot(bots_world* g, char* memory, int size) {
+    bots_cpu* cpu = (bots_cpu*)calloc(1, sizeof(bots_cpu));
+    bots_tank* tank = (bots_tank*)calloc(1, sizeof(bots_tank));
 
     tank->health = 100;
     cpu->mem_max = 127;
     memcpy(cpu->memory, memory, size);
 
-    world_add_bot(g->_world, cpu, tank);
-
-    g->tanks[g->num_tanks] = tank;
-    g->cpus[g->num_tanks++] = cpu;
+    bots_world_add_bot(g, cpu, tank);
 
     return 1;
 }
 
-void bots_tick(bots_game* g) {
-    world_tick(g->_world);
+void bots_tick(bots_world* g) {
+    bots_world_tick(g);
 }

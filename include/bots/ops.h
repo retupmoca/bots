@@ -5,7 +5,7 @@
 
 #include <bots/struct.h>
 
-#define OPCOUNT 68
+#define BOTS_CPU_OPCOUNT 68
 
 #define DLL_EXPORT
 #ifdef _WIN32
@@ -20,9 +20,9 @@ typedef struct {
     uint8_t size;
     uint8_t argcount;
     uint8_t arg_sizes[3];
-    void (*execute)(machine*);
-} opdata;
+    void (*execute)(bots_cpu*);
+} bots_cpu_opdata;
 
-DLL_EXPORT opdata oplist[OPCOUNT];
+DLL_EXPORT bots_cpu_opdata bots_cpu_oplist[BOTS_CPU_OPCOUNT];
 
 #endif
