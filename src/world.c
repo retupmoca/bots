@@ -15,15 +15,15 @@ void bots_world_tick(bots_world* w){
         int hit = 0;
         int j;
         for(j=0; j < w->num_tanks; j++){
-            if(   s->x >= w->tanks[j]->x - 5
-               && s->x <= w->tanks[j]->x + 5
-               && s->y >= w->tanks[j]->y - 5
-               && s->y <= w->tanks[j]->y + 5){
+            if(   s->x >= w->tanks[j]->x - 40
+               && s->x <= w->tanks[j]->x + 40
+               && s->y >= w->tanks[j]->y - 40
+               && s->y <= w->tanks[j]->y + 40){
                 /* hit! */
                 hit = 1;
 
                 /* record damage */
-                w->tanks[j]->health -= 5;
+                w->tanks[j]->health -= 10;
                 if(w->tanks[j]->health < 0)
                     w->tanks[j]->health = 0;
 
@@ -50,14 +50,14 @@ void bots_world_tick(bots_world* w){
 
         /* check collision again */
         for(j=0; j < w->num_tanks; j++){
-            if(   s->x >= w->tanks[j]->x - 5
-               && s->x <= w->tanks[j]->x + 5
-               && s->y >= w->tanks[j]->y - 5
-               && s->y <= w->tanks[j]->y + 5){
+            if(   s->x >= w->tanks[j]->x - 40
+               && s->x <= w->tanks[j]->x + 40
+               && s->y >= w->tanks[j]->y - 40
+               && s->y <= w->tanks[j]->y + 40){
                 /* hit! */
 
                 /* record damage */
-                w->tanks[j]->health -= 5;
+                w->tanks[j]->health -= 10;
                 if(w->tanks[j]->health < 0)
                     w->tanks[j]->health = 0;
 

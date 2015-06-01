@@ -82,7 +82,7 @@ void int_fire(bots_cpu* m) {
     s->y = m->world->tanks[m->bot_id]->y;
         
     double rangle = (s->heading-64) * M_PI / 128;
-    int dist = 6;
+    int dist = 60;
     int dx = floor(0.5 + (dist * cos(rangle)));
     int dy = floor(0.5 + (dist * sin(rangle)));
     s->x += dx;
