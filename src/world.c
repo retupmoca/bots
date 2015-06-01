@@ -1,4 +1,4 @@
-E_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #include <stdlib.h>
 #include <math.h>
 
@@ -12,7 +12,7 @@ void bots_world_tick(bots_world* w){
     /* shots */
     for(s=w->shots[0], i=0; s; s=w->shots[++i]) {
         /* check collision */
-      int hit = 0;
+        int hit = 0;
         int j;
         for(j=0; j < w->num_tanks; j++){
             if(   s->x >= w->tanks[j]->x - 5
@@ -42,7 +42,7 @@ void bots_world_tick(bots_world* w){
 
         /* move the shots */
         double rangle = (s->heading-64) * M_PI / 128;
-        int dist = 20;
+        int dist = 5;
         int dx = floor(0.5 + (dist * cos(rangle)));
         int dy = floor(0.5 + (dist * sin(rangle)));
         s->x += dx;
@@ -154,4 +154,3 @@ void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {
     w->tanks[w->num_tanks] = p;
     w->num_tanks++;
 }
-
