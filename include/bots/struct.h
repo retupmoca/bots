@@ -45,6 +45,9 @@ typedef struct {
     int32_t x;
     int32_t y;
     uint32_t heading;
+
+    uint8_t bot_id;
+    long long id;
 } bots_shot;
 
 struct _bots_world {
@@ -52,6 +55,7 @@ struct _bots_world {
     bots_cpu* cpus[16];
     bots_tank* tanks[16];
     bots_shot* shots[16*1024]; /* we've got the memory... */
+    long long next_shot_id;
 };
 
 #endif

@@ -87,6 +87,9 @@ void int_fire(bots_cpu* m) {
     int dy = floor(0.5 + (dist * sin(rangle)));
     s->x += dx;
     s->y += dy;
+
+    s->bot_id = m->bot_id;
+    s->id = m->world->next_shot_id++;
     
     /* add shot to world */
     int i = 0;
