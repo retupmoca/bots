@@ -42,7 +42,7 @@ void bots_world_tick(bots_world* w){
 
         /* move the shots */
         double rangle = (s->heading-64) * M_PI / 128;
-        int dist = 5;
+        int dist = 20;
         int dx = floor(0.5 + (dist * cos(rangle)));
         int dy = floor(0.5 + (dist * sin(rangle)));
         s->x += dx;
