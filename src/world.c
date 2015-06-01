@@ -18,7 +18,8 @@ void bots_world_tick(bots_world* w){
             if(   s->x >= w->tanks[j]->x - 40
                && s->x <= w->tanks[j]->x + 40
                && s->y >= w->tanks[j]->y - 40
-               && s->y <= w->tanks[j]->y + 40){
+               && s->y <= w->tanks[j]->y + 40
+	       && w->tanks[j]->health > 0){
                 /* hit! */
                 hit = 1;
 
@@ -53,7 +54,8 @@ void bots_world_tick(bots_world* w){
             if(   s->x >= w->tanks[j]->x - 40
                && s->x <= w->tanks[j]->x + 40
                && s->y >= w->tanks[j]->y - 40
-               && s->y <= w->tanks[j]->y + 40){
+               && s->y <= w->tanks[j]->y + 40
+	       && w->tanks[j]->health > 0){
                 /* hit! */
 
                 /* record damage */
@@ -73,7 +75,7 @@ void bots_world_tick(bots_world* w){
     }
     /* bots */
     for(i=0; i < w->num_tanks; i++){
-        if(w->tanks[i]->health == 0)
+        if(w->tanks[i]->health <= 0)
             continue;
         /* turn, etc */
         uint16_t throttle;
@@ -134,7 +136,7 @@ void bots_world_tick(bots_world* w){
 
     /* execute */
     for(i=0; i < w->num_tanks; i++){
-        if(w->tanks[i]->health == 0)
+        if(w->tanks[i]->health <= 0)
             continue;
         /* we do these "backwords" in order to simulate a 3-stage pipeline */
         bots_cpu_execute(w->cpus[i]);
