@@ -3,13 +3,15 @@
 #include <stdio.h>
 #include <bots/struct.h>
 
-#define DLL_EXPORT
-#ifdef _WIN32
-#ifdef BUILD_SHARED
-#define DLL_EXPORT __declspec(dllexport)
-#else
-#define DLL_EXPORT __declspec(dllimport)
-#endif
+#ifndef DLL_EXPORT
+# define DLL_EXPORT
+# ifdef _WIN32
+#  ifdef BOTS_BUILD_SHARED
+#   define DLL_EXPORT __declspec(dllexport)
+#  else
+#   define DLL_EXPORT __declspec(dllimport)
+#  endif
+# endif
 #endif
 
 DLL_EXPORT bots_world* bots_create_world();
