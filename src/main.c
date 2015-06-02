@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
 
     while(1) {
         bots_tick(g);
+        printf("Bot 1 heading: %i\n", g->tanks[0]->heading);
         printf("Bot 1 position: %i:%i\n", g->tanks[0]->x, g->tanks[0]->y);
         printf("Bot 2 position: %i:%i\n", g->tanks[1]->x, g->tanks[1]->y);
         sleep(1);

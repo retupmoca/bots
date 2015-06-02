@@ -79,6 +79,7 @@ void bots_world_tick(bots_world* w){
             continue;
         /* turn, etc */
         uint16_t throttle;
+        short real_steering;
         uint16_t steering;
         uint16_t turret_steering;
         uint16_t scanner_steering;
@@ -89,15 +90,23 @@ void bots_world_tick(bots_world* w){
         steering = w->cpus[i]->ports[2] << 8;
         steering = steering | w->cpus[i]->ports[3];
         steering = steering % 256;
+        real_steering = steering;
+        if(real_steering <= 128 && real_steering > 1){
+            real_steering = 1;
+        }
+        if(real_steering > 128 && real_steering < 255){
+            real_steering = 255;
+        }
+        steering -= real_steering;
+        w->cpus[i]->ports[2] = steering >> 8;
+        w->cpus[i]->ports[3] = steering & 0xff;
 
-        w->tanks[i]->heading = (w->tanks[i]->heading + steering) % 256;
-        w->cpus[i]->ports[2] = 0;
-        w->cpus[i]->ports[3] = 0;
+        w->tanks[i]->heading = (w->tanks[i]->heading + real_steering) % 256;
         w->tanks[i]->speed = throttle;
 
         /* drive! */
         double rangle = (w->tanks[i]->heading-64) * M_PI / 128;
-        int dist = w->tanks[i]->speed;
+        double dist = (w->tanks[i]->speed / 100.0) * 6.0;
         int dx = floor(0.5 + (dist * cos(rangle)));
         int dy = floor(0.5 + (dist * sin(rangle)));
         w->tanks[i]->x += dx;
@@ -108,10 +117,18 @@ void bots_world_tick(bots_world* w){
         turret_steering = turret_steering | w->cpus[i]->ports[5];
         if(w->cpus[i]->ports[7]) /* turret keepshift */
             turret_steering = (turret_steering + 256 - steering) % 256;
+        real_steering = turret_steering;
+        if(real_steering <= 128 && real_steering > 2){
+            real_steering = 2;
+        }
+        if(real_steering > 128 && real_steering < 254){
+            real_steering = 254;
+        }
+        turret_steering -= real_steering;
+        w->cpus[i]->ports[4] = turret_steering >> 8;
+        w->cpus[i]->ports[5] = turret_steering & 0xff;
 
-        w->tanks[i]->turret_offset = (w->tanks[i]->turret_offset + turret_steering) % 256;
-        w->cpus[i]->ports[4] = 0;
-        w->cpus[i]->ports[5] = 0;
+        w->tanks[i]->turret_offset = (w->tanks[i]->turret_offset + real_steering) % 256;
 
         /* turn scanner */
         scanner_steering = w->cpus[i]->ports[8] << 8;
