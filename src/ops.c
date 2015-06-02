@@ -481,15 +481,34 @@ void op_jnz_i(bots_cpu* m) {
 }
 
 void op_call_r(bots_cpu* m) {
-    /* stub */
+    m->registers[1] -= 2;
+    m->memory[m->registers[1]] = m->decode_pc >> 8;
+    m->memory[m->registers[1] + 1] = m->decode_pc & 0xff;
+
+    m->fetch_pc = m->registers[m->args[0]];
+    m->decode_ready = 0;
+    m->execute_ready = 0;
 }
 
 void op_call_i(bots_cpu* m) {
-    /* stub */
+    m->registers[1] -= 2;
+    m->memory[m->registers[1]] = m->decode_pc >> 8;
+    m->memory[m->registers[1] + 1] = m->decode_pc & 0xff;
+
+    m->fetch_pc = m->args[0];
+    m->decode_ready = 0;
+    m->execute_ready = 0;
 }
 
 void op_ret(bots_cpu* m) {
-    /* stub */
+    uint16_t pc = 0;
+    pc = m->memory[m->registers[1]] << 8;
+    pc = m->registers[m->args[0]] | m->memory[m->registers[1] + 1];
+    m->registers[1] += 2;
+
+    m->fetch_pc = pc;
+    m->decode_ready = 0;
+    m->execute_ready = 0;
 }
 
 bots_cpu_opdata bots_cpu_oplist[BOTS_CPU_OPCOUNT] = {
