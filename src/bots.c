@@ -31,9 +31,9 @@ char bots_add_bot_from_handle(bots_world* g, FILE* file) {
         return 0;
     }
 
-    char buf[1024];
+    char buf[65536];
     int i = 0;
-    i = fread(buf, 1, 1024, file);
+    i = fread(buf, 1, 65536, file);
 
     return bots_add_bot(g, buf, i);
 }
@@ -42,7 +42,7 @@ char bots_add_bot(bots_world* g, char* memory, int size) {
     bots_tank* tank = (bots_tank*)calloc(1, sizeof(bots_tank));
 
     tank->health = 100;
-    cpu->mem_max = 127;
+    cpu->mem_max = 65535;
     memcpy(cpu->memory, memory, size);
 
     bots_world_add_bot(g, cpu, tank);
