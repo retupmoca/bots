@@ -103,6 +103,8 @@ void bots_world_tick(bots_world* w){
 
         w->tanks[i]->heading = (w->tanks[i]->heading + real_steering) % 256;
         w->tanks[i]->speed = throttle;
+        if(w->tanks[i]->speed > 100)
+            w->tanks[i]->speed = 100;
 
         /* drive! */
         double rangle = (w->tanks[i]->heading-64) * M_PI / 128;
