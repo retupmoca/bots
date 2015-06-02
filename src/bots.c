@@ -31,12 +31,9 @@ char bots_add_bot_from_handle(bots_world* g, FILE* file) {
         return 0;
     }
 
-    char buf[128];
+    char buf[1024];
     int i = 0;
-    char x;
-    while(i < 128 && (x = fgetc(file)) != EOF){
-        buf[i++] = x;
-    }
+    i = fread(buf, 1, 1024, file);
 
     return bots_add_bot(g, buf, i);
 }

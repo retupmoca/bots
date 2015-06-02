@@ -98,6 +98,10 @@ void bots_world_tick(bots_world* w){
             real_steering = 255;
         }
         steering -= real_steering;
+        if(real_steering < 128)
+            real_steering = 0 - real_steering;
+        else
+            real_steering = 0 - real_steering - 256;
         w->cpus[i]->ports[2] = steering >> 8;
         w->cpus[i]->ports[3] = steering & 0xff;
 
@@ -127,6 +131,10 @@ void bots_world_tick(bots_world* w){
             real_steering = 254;
         }
         turret_steering -= real_steering;
+        if(real_steering < 128)
+            real_steering = 0 - real_steering;
+        else
+            real_steering = 0 - real_steering - 256;
         w->cpus[i]->ports[4] = turret_steering >> 8;
         w->cpus[i]->ports[5] = turret_steering & 0xff;
 
