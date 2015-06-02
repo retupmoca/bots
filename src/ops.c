@@ -297,13 +297,13 @@ void op_out_ii(bots_cpu* m) {
 }
 
 void op_in_r(bots_cpu* m) {
-    m->ports[m->args[0]] = m->memory[m->registers[m->args[1]]] << 8;
-    m->ports[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[m->args[1]] + 1];
+    m->registers[m->args[0]] = m->ports[m->registers[m->args[1]]] << 8;
+    m->registers[m->args[0]] = m->registers[m->args[0]] | m->ports[m->registers[m->args[1]] + 1];
 }
 
 void op_in_i(bots_cpu* m) {
-    m->ports[m->args[0]] = m->memory[m->args[1]] << 8;
-    m->ports[m->args[0]] = m->registers[m->args[0]] | m->memory[m->args[1] + 1];
+    m->registers[m->args[0]] = m->ports[m->args[1]] << 8;
+    m->registers[m->args[0]] = m->registers[m->args[0]] | m->ports[m->args[1] + 1];
 }
 
 void op_int_r(bots_cpu* m) {
