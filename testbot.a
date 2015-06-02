@@ -1,5 +1,6 @@
-out.ii 2 128
 out.ii 0 100
+out.ii 14 16
+out.ii 16 50
 
 !mainloop
 out.ii 2 16
