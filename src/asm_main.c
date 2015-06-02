@@ -75,7 +75,10 @@ asm_opdata mydata[BOTS_CPU_OPCOUNT] = {
     { "jz.r" },
     { "jz.i" },
     { "jnz.r" },
-    { "jnz.i" }
+    { "jnz.i" },
+    { "call.r" },
+    { "call.i" },
+    { "ret" }
 };
 
 typedef struct {

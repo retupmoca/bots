@@ -480,6 +480,18 @@ void op_jnz_i(bots_cpu* m) {
     }
 }
 
+void op_call_r(bots_cpu* m) {
+    /* stub */
+}
+
+void op_call_i(bots_cpu* m) {
+    /* stub */
+}
+
+void op_ret(bots_cpu* m) {
+    /* stub */
+}
+
 bots_cpu_opdata bots_cpu_oplist[BOTS_CPU_OPCOUNT] = {
   { 1, 0, {0}, &op_nop },
 
@@ -579,4 +591,8 @@ bots_cpu_opdata bots_cpu_oplist[BOTS_CPU_OPCOUNT] = {
 
   { 2, 1, {1}, &op_jnz_r },
   { 3, 1, {2}, &op_jnz_i },
+
+  { 2, 1, {1}, &op_call_r },
+  { 3, 1, {2}, &op_call_i },
+  { 1, 0, {0}, &op_ret },
 };
