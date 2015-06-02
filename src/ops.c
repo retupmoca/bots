@@ -27,7 +27,7 @@ void int_scan(bots_cpu* m) {
     uint8_t radar_right = (heading + radar_arc) % 256;
     
     int seen_index = 0;
-    int seen_bots[256] = { -1 };
+    int seen_bots[256];
     int32_t seen_bot_range[256];
     int seen_bot_angle[256];
     
@@ -58,7 +58,7 @@ void int_scan(bots_cpu* m) {
     m->ports[0x13] = 0;
     m->ports[0x14] = 0;
     m->ports[0x15] = 0;
-    for(i=0; seen_bots[i] > -1; i++) {
+    for(i=0; i < seen_index; i++) {
         if(seen_bot_range[i] < lowest_range || lowest_range == 0) {
             lowest_range = seen_bot_range[i];
             m->ports[0x12] = lowest_range >> 8;
