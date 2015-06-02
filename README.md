@@ -84,6 +84,9 @@ number | name | arg1 | arg2 | arg3
 65 |jz.i | i
 66 |jnz.r | r
 67 |jnz.i | i
+68 |call.r | r
+69 |call.i | i
+70 |ret
 
 ports
 
