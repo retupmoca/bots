@@ -20,6 +20,8 @@ void int_scan(bots_cpu* m) {
     
     /* check angle and range of each bot against scan parameters */
     int radar_arc = m->ports[0x0f];
+    if(radar_arc > 64)
+        radar_arc = 64;
     int radar_range = m->ports[0x10] << 8;
     radar_range |= m->ports[0x11];
     
