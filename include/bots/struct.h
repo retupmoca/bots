@@ -23,7 +23,7 @@ typedef struct {
     uint16_t fetch_pc;
     /**/
 
-    uint8_t ports[24];
+    uint8_t ports[28];
 
     bots_world* world;
     uint8_t bot_id;

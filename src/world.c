@@ -84,6 +84,7 @@ void bots_world_tick(bots_world* w){
         uint16_t steering;
         uint16_t turret_steering;
         uint16_t scanner_steering;
+        uint16_t steering_adjust;
 
         throttle = w->cpus[i]->ports[0] << 8;
         throttle = throttle | w->cpus[i]->ports[1];
@@ -91,6 +92,14 @@ void bots_world_tick(bots_world* w){
         steering = w->cpus[i]->ports[2] << 8;
         steering = steering | w->cpus[i]->ports[3];
         steering = steering % 256;
+
+        steering_adjust = w->cpus[i]->ports[24] << 8;
+        steering_adjust |= w->cpus[i]->ports[25];
+        steering += steering_adjust;
+        steering = steering % 256;
+        w->cpus[i]->ports[24] = 0;
+        w->cpus[i]->ports[25] = 0;
+
         real_steering = steering;
         if(real_steering <= 128 && real_steering > 1){
             real_steering = 1;
@@ -121,6 +130,14 @@ void bots_world_tick(bots_world* w){
         if(w->cpus[i]->ports[7]) /* turret keepshift */
             turret_steering = (turret_steering + 256 - real_steering) % 256;
         turret_steering = turret_steering % 256;
+
+        steering_adjust = w->cpus[i]->ports[26] << 8;
+        steering_adjust |= w->cpus[i]->ports[27];
+        turret_steering += steering_adjust;
+        turret_steering = turret_steering % 256;
+        w->cpus[i]->ports[26] = 0;
+        w->cpus[i]->ports[27] = 0;
+
         real_turret_steering = turret_steering;
         if(real_turret_steering <= 128 && real_turret_steering > 2){
             real_turret_steering = 2;

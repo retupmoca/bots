@@ -104,6 +104,8 @@ addr | name
 0x12 |radar target range
 0x14 |radar target offset
 0x16 |transponder
+0x18 |hull steering adjust
+0x1a |gun steering adjust
 
 ints
 
