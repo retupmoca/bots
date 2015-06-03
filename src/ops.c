@@ -351,9 +351,10 @@ void op_jmp_r(bots_cpu* m) {
 }
 
 void op_jmp_i(bots_cpu* m) {
-    m->fetch_pc = m->args[0];
+    /* the cpu fetcher already followed the jump */
+    /*m->fetch_pc = m->args[0];
     m->decode_ready = 0;
-    m->execute_ready = 0;
+    m->execute_ready = 0;*/
 }
 
 void op_jls_r(bots_cpu* m) {
@@ -496,12 +497,15 @@ void op_call_r(bots_cpu* m) {
 
 void op_call_i(bots_cpu* m) {
     m->registers[1] -= 2;
-    m->memory[m->registers[1]] = m->decode_pc >> 8;
-    m->memory[m->registers[1] + 1] = m->decode_pc & 0xff;
+    uint16_t pc = m->pc;
+    pc += 3;
+    m->memory[m->registers[1]] = pc >> 8;
+    m->memory[m->registers[1] + 1] = pc & 0xff;
 
-    m->fetch_pc = m->args[0];
+    /* the cpu fetcher already followed the jump */
+    /*m->fetch_pc = m->args[0];
     m->decode_ready = 0;
-    m->execute_ready = 0;
+    m->execute_ready = 0;*/
 }
 
 void op_ret(bots_cpu* m) {

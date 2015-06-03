@@ -42,4 +42,9 @@ void bots_cpu_fetch(bots_cpu* m) {
     m->decode_pc = m->fetch_pc;
     m->decode_ready = 1;
     m->fetch_pc += bots_cpu_oplist[op].size;
+
+    if(op == 51 || op == 69) { /* hard jump / call - follow it for prefetching */
+        m->fetch_pc = m->decode_bytes[1] << 8;
+        m->fetch_pc |= m->decode_bytes[2];
+    }
 }
