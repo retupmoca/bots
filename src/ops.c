@@ -43,7 +43,7 @@ void int_scan(bots_cpu* m) {
         int32_t x = m->world->tanks[i]->x - m->world->tanks[m->bot_id]->x;
         int32_t y = m->world->tanks[i]->y - m->world->tanks[m->bot_id]->y;
         
-        uint8_t angle = (int)(atan2(y, x) * 128 / M_PI) % 256;
+        uint8_t angle = (int)(atan2(x, y) * 128 / M_PI) % 256;
         int32_t range = (int)(sqrt(y * y + x * x));
         
         if(   range <= radar_range
