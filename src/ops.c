@@ -35,6 +35,8 @@ void int_scan(bots_cpu* m) {
     for(i=0; i<m->world->num_tanks; i++){
         if(i == m->bot_id)
             continue;
+        if(m->world->tanks[i]->health <= 0)
+            continue;
         
         int32_t x = m->world->tanks[i]->x - m->world->tanks[m->bot_id]->x;
         int32_t y = m->world->tanks[i]->y - m->world->tanks[m->bot_id]->y;
