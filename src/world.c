@@ -123,6 +123,7 @@ void bots_world_tick(bots_world* w){
         turret_steering = turret_steering | w->cpus[i]->ports[5];
         if(w->cpus[i]->ports[7]) /* turret keepshift */
             turret_steering = (turret_steering + 256 - steering) % 256;
+        turret_steering = turret_steering % 256;
         real_steering = turret_steering;
         if(real_steering <= 128 && real_steering > 2){
             real_steering = 2;
