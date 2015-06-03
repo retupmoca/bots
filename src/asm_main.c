@@ -192,14 +192,17 @@ int main(int argc, char* argv[]) {
     int address = 0;
     int in_comment = 0;
     for(i = 0;i == 0 || code[i-1];i++){
-        if(in_comment || code[i] == ';') {
+        if(in_comment) {
             in_comment = 1;
             if(code[i] == '\n' || code[i] == '\0'){
                 start = i+1;
                 in_comment = 0;
             }
         }
-        else if(code[i] == ' ' || code[i] == '\n' || code[i] == '\0'){
+        else if(code[i] == ';' || code[i] == ' ' || code[i] == '\n' || code[i] == '\0'){
+            if(code[i] == ';'){
+                in_comment = 1;
+            }
             if(start == i) {
                 start = i+1;
             } else {
