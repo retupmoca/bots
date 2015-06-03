@@ -128,9 +128,59 @@ int main(int argc, char* argv[]) {
     code[s] = 0;
     fclose(fin);
 
+    /* pre-process for includes */
+    int i = 0;
+    int include_start = 0;
+    while(include_start > -1) {
+        include_start = -1;
+        for(;code[i]; i++){
+            if(code[i] == '#' && (i == 0 || code[i-1] == '\n')){
+                include_start = i;
+            }
+            if(include_start > -1 && code[i] == '\n'){
+                int j = include_start;
+                char fname[255];
+                char reading = 0;
+                for(;j < i; j++){
+                    if(!reading && code[j] == ' ') {
+                        reading = 1;
+                        continue;
+                    }
+
+                    if(reading){
+                        fname[reading - 1] = code[j];
+                        fname[reading] = 0;
+                        reading++;
+                    }
+                }
+                char *include;
+                FILE *finclude = fopen(fname, "r");
+                fseek(finclude, 0L, SEEK_END);
+                long size = ftell(finclude);
+                rewind(finclude);
+                include = malloc(size+1);
+                size = fread(include, 1, size, finclude);
+                include[size] = 0;
+                fclose(finclude);
+
+                char *newcode = malloc(size + s + 1);
+                memcpy(newcode, code, include_start);
+                memcpy(newcode + include_start, include, size);
+                memcpy(newcode + include_start + size, code + i, s - i);
+                s = include_start + size + (s - i);
+                newcode[s] = 0;
+
+                free(include);
+                free(code);
+                code = newcode;
+
+                break;
+            }
+        }
+    }
+
     FILE* out = fopen(argv[2], "wb");
 
-    int i = 0;
     int start = 0;
     inst in;
     inst program[2048]; 
@@ -141,7 +191,7 @@ int main(int argc, char* argv[]) {
     int numargs = 0;
     int address = 0;
     int in_comment = 0;
-    for(;i == 0 || code[i-1];i++){
+    for(i = 0;i == 0 || code[i-1];i++){
         if(in_comment || code[i] == ';') {
             in_comment = 1;
             if(code[i] == '\n' || code[i] == '\0'){
