@@ -507,7 +507,7 @@ void op_call_i(bots_cpu* m) {
 void op_ret(bots_cpu* m) {
     uint16_t pc = 0;
     pc = m->memory[m->registers[1]] << 8;
-    pc = m->registers[m->args[0]] | m->memory[m->registers[1] + 1];
+    pc = pc | m->memory[m->registers[1] + 1];
     m->registers[1] += 2;
 
     m->fetch_pc = pc;
