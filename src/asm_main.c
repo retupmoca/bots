@@ -124,8 +124,8 @@ int main(int argc, char* argv[]) {
     long s = ftell(fin);
     rewind(fin);
     code = malloc(s+1);
+    s = fread(code, 1, s, fin);
     code[s] = 0;
-    fread(code, s, 1, fin);
     fclose(fin);
 
     FILE* out = fopen(argv[2], "wb");
@@ -183,8 +183,9 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-                else
+                else {
                     in.args[argcount-1] = str;
+                }
 
                 argcount++;
 

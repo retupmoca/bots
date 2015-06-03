@@ -42,10 +42,10 @@ void bots_world_tick(bots_world* w){
             continue;
 
         /* move the shots */
-        double rangle = (s->heading-64) * M_PI / 128;
+        double rangle = (s->heading) * M_PI / 128;
         int dist = 20;
-        int dx = floor(0.5 + (dist * cos(rangle)));
-        int dy = floor(0.5 + (dist * sin(rangle)));
+        int dy = floor(0.5 + (dist * cos(rangle)));
+        int dx = floor(0.5 + (dist * sin(rangle)));
         s->x += dx;
         s->y += dy;
 
@@ -99,10 +99,6 @@ void bots_world_tick(bots_world* w){
             real_steering = 255;
         }
         steering -= real_steering;
-        if(real_steering < 128)
-            real_steering = 0 - real_steering;
-        else
-            real_steering = 0 - real_steering - 256;
         w->cpus[i]->ports[2] = steering >> 8;
         w->cpus[i]->ports[3] = steering & 0xff;
 
@@ -112,10 +108,10 @@ void bots_world_tick(bots_world* w){
             w->tanks[i]->speed = 100;
 
         /* drive! */
-        double rangle = (w->tanks[i]->heading-64) * M_PI / 128;
+        double rangle = (w->tanks[i]->heading) * M_PI / 128;
         double dist = (w->tanks[i]->speed / 100.0) * 6.0;
-        int dx = floor(0.5 + (dist * cos(rangle)));
-        int dy = floor(0.5 + (dist * sin(rangle)));
+        int dy = floor(0.5 + (dist * cos(rangle)));
+        int dx = floor(0.5 + (dist * sin(rangle)));
         w->tanks[i]->x += dx;
         w->tanks[i]->y += dy;
 
@@ -133,10 +129,6 @@ void bots_world_tick(bots_world* w){
             real_turret_steering = 254;
         }
         turret_steering -= real_turret_steering;
-        if(real_turret_steering < 128)
-            real_turret_steering = 0 - real_turret_steering;
-        else
-            real_turret_steering = 0 - real_turret_steering - 256;
         w->cpus[i]->ports[4] = turret_steering >> 8;
         w->cpus[i]->ports[5] = turret_steering & 0xff;
 

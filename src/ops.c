@@ -43,7 +43,7 @@ void int_scan(bots_cpu* m) {
         int32_t x = m->world->tanks[i]->x - m->world->tanks[m->bot_id]->x;
         int32_t y = m->world->tanks[i]->y - m->world->tanks[m->bot_id]->y;
         
-        uint8_t angle = (int)(atan2(y, x) * 128 / M_PI)+64 % 256;
+        uint8_t angle = (int)(atan2(y, x) * 128 / M_PI) % 256;
         int32_t range = (int)(sqrt(y * y + x * x));
         
         if(   range <= radar_range
@@ -85,10 +85,10 @@ void int_fire(bots_cpu* m) {
     s->x = m->world->tanks[m->bot_id]->x;
     s->y = m->world->tanks[m->bot_id]->y;
         
-    double rangle = (s->heading-64) * M_PI / 128;
+    double rangle = s->heading * M_PI / 128;
     int dist = 60;
-    int dx = floor(0.5 + (dist * cos(rangle)));
-    int dy = floor(0.5 + (dist * sin(rangle)));
+    int dy = floor(0.5 + (dist * cos(rangle)));
+    int dx = floor(0.5 + (dist * sin(rangle)));
     s->x += dx;
     s->y += dy;
 
