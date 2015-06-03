@@ -180,6 +180,10 @@ void bots_world_tick(bots_world* w){
         bots_cpu_execute(w->cpus[i]);
         bots_cpu_decode(w->cpus[i]);
         bots_cpu_fetch(w->cpus[i]);
+
+        bots_cpu_execute(w->cpus[i]);
+        bots_cpu_decode(w->cpus[i]);
+        bots_cpu_fetch(w->cpus[i]);
     }
 }
 
