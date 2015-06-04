@@ -22,7 +22,8 @@ void bots_free_world(bots_world* g){
 char bots_add_bot_from_file(bots_world* g, char* filename) {
     FILE* f = fopen(filename, "rb");
     char ret = bots_add_bot_from_handle(g, f);
-    fclose(f);
+    if(f)
+        fclose(f);
 
     return ret;
 }
