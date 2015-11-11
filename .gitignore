@@ -1,0 +1,6 @@
+Makefile
+*.dll
+*.exe
+*.exp
+*.lib
+*.obj
