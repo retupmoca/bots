@@ -5,7 +5,7 @@
 
 #include <bots/struct.h>
 
-#define BOTS_CPU_OPCOUNT 71
+#define BOTS_CPU_OPCOUNT 73
 
 #ifndef DLL_EXPORT
 # ifdef _WIN32

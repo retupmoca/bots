@@ -49,44 +49,46 @@ number | name | arg1 | arg2 | arg3
 30 |push.r | r
 31 |push.i | i
 32 |pop | r
-33 |put.rr | r | r
-34 |put.ri | r | i
-35 |put.ir | i | r
-36 |put.ii | i | i
-37 |get.r | r | r
-38 |get.i | r | i
-39 |out.rr | r | r
-40 |out.ri | r | i
-41 |out.ir | i | r
-42 |out.ii | i | i
-43 |in.r | r | r
-44 |in.i | r | i
-45 |int.r | r
-46 |int.i | i
-47 |cmp.rr | r | r
-48 |cmp.ri | r | i
-49 |cmp.ir | i | r
-50 |jmp.r | r
-51 |jmp.i | i
-52 |jls.r | r
-53 |jls.i | i
-54 |jgr.r | r
-55 |jgr.i | i
-56 |jne.r | r
-57 |jne.i | i
-58 |jeq.r | r
-59 |jeq.i | i
-60 |jge.r | r
-61 |jge.i | i
-62 |jle.r | r
-63 |jle.i | i
-64 |jz.r | r
-65 |jz.i | i
-66 |jnz.r | r
-67 |jnz.i | i
-68 |call.r | r
-69 |call.i | i
-70 |ret
+33 |sw.rrr | r | r | r
+34 |sb.rrr | r | r | r
+35 |sw.rir | r | i | r
+36 |sb.rir | r | i | r
+37 |lw.rrr | r | r | r
+38 |lb.rrr | r | r | r
+39 |lw.rri | r | r | i
+40 |lb.rri | r | r | i
+41 |out.rr | r | r
+42 |out.ri | r | i
+43 |out.ir | i | r
+44 |out.ii | i | i
+45 |in.r | r | r
+46 |in.i | r | i
+47 |int.r | r
+48 |int.i | i
+49 |cmp.rr | r | r
+50 |cmp.ri | r | i
+51 |cmp.ir | i | r
+52 |jmp.r | r
+53 |jmp.i | i
+54 |jls.r | r
+55 |jls.i | i
+56 |jgr.r | r
+57 |jgr.i | i
+58 |jne.r | r
+59 |jne.i | i
+60 |jeq.r | r
+61 |jeq.i | i
+62 |jge.r | r
+63 |jge.i | i
+64 |jle.r | r
+65 |jle.i | i
+66 |jz.r | r
+67 |jz.i | i
+68 |jnz.r | r
+69 |jnz.i | i
+70 |call.r | r
+71 |call.i | i
+72 |ret
 
 ports
 

@@ -250,34 +250,52 @@ void op_pop(bots_cpu* m) {
 }
 /**/
 
-void op_put_rr(bots_cpu* m) {
-    m->memory[m->registers[m->args[0]]] = m->registers[m->args[1]] >> 8;
-    m->memory[m->registers[m->args[0]] + 1] = m->registers[m->args[1]] & 0xff;
+void op_sw_rrr(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[0]] + m->registers[m->args[1]];
+    uint16_t value = m->registers[m->args[2]];
+    m->memory[address] = value >> 8;
+    m->memory[address + 1] = value & 0xff;
 }
 
-void op_put_ri(bots_cpu* m) {
-    m->memory[m->registers[m->args[0]]] = m->args[1] >> 8;
-    m->memory[m->registers[m->args[0]] + 1] = m->args[1] & 0xff;
+void op_sb_rrr(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[0]] + m->registers[m->args[1]];
+    uint16_t value = m->registers[m->args[2]];
+    m->memory[address] = m->registers[m->args[2]] & 0xff;
 }
 
-void op_put_ir(bots_cpu* m) {
-    m->memory[m->args[0]] = m->registers[m->args[1]] >> 8;
-    m->memory[m->args[0] + 1] = m->registers[m->args[1]] & 0xff;
+void op_sw_rir(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[0]] + m->args[1];
+    uint16_t value = m->registers[m->args[2]];
+    m->memory[address] = value >> 8;
+    m->memory[address + 1] = value & 0xff;
 }
 
-void op_put_ii(bots_cpu* m) {
-    m->memory[m->args[0]] = m->args[1] >> 8;
-    m->memory[m->args[0] + 1] = m->args[1] & 0xff;
+void op_sb_rir(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[0]] + m->args[1];
+    uint16_t value = m->registers[m->args[2]];
+    m->memory[address] = m->registers[m->args[2]] & 0xff;
 }
 
-void op_get_r(bots_cpu* m) {
-    m->registers[m->args[0]] = m->memory[m->registers[m->args[1]]] << 8;
-    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[m->args[1]] + 1];
+void op_lw_rrr(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[1]] + m->registers[m->args[2]];
+    m->registers[m->args[0]] = m->memory[address] << 8;
+    m->registers[m->args[0]] |= m->memory[address + 1];
 }
 
-void op_get_i(bots_cpu* m) {
-    m->registers[m->args[0]] = m->memory[m->args[1]] << 8;
-    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->args[1] + 1];
+void op_lb_rrr(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[1]] + m->registers[m->args[2]];
+    m->registers[m->args[0]] = m->memory[address];
+}
+
+void op_lw_rri(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[1]] + m->args[2];
+    m->registers[m->args[0]] = m->memory[address] << 8;
+    m->registers[m->args[0]] |= m->memory[address + 1];
+}
+
+void op_lb_rri(bots_cpu* m) {
+    uint16_t address = m->registers[m->args[1]] + m->args[2];
+    m->registers[m->args[0]] = m->memory[address];
 }
 
 void op_out_rr(bots_cpu* m) {
@@ -569,13 +587,15 @@ bots_cpu_opdata bots_cpu_oplist[BOTS_CPU_OPCOUNT] = {
 
   { 2, 1, {1}, &op_pop },
 
-  { 3, 2, {1, 1}, &op_put_rr },
-  { 4, 2, {1, 2}, &op_put_ri },
-  { 4, 2, {2, 1}, &op_put_ir },
-  { 5, 2, {2, 2}, &op_put_ii },
+  { 4, 3, {1, 1, 1}, &op_sw_rrr },
+  { 4, 3, {1, 1, 1}, &op_sb_rrr },
+  { 5, 3, {1, 2, 1}, &op_sw_rir },
+  { 5, 3, {1, 2, 1}, &op_sb_rir },
 
-  { 3, 2, {1, 1}, &op_get_r },
-  { 4, 2, {1, 2}, &op_get_i },
+  { 4, 3, {1, 1, 1}, &op_lw_rrr },
+  { 4, 3, {1, 1, 1}, &op_lb_rrr },
+  { 5, 3, {1, 1, 2}, &op_lw_rri },
+  { 5, 3, {1, 1, 2}, &op_lb_rri },
 
   { 3, 2, {1, 1}, &op_out_rr },
   { 4, 2, {1, 2}, &op_out_ri },
