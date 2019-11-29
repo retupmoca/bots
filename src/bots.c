@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <bots/bots.h>
+#include <bots/world.h>
 
 bots_world* bots_create_world() {
     bots_world* g = (bots_world*)calloc(1, sizeof(bots_world));

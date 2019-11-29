@@ -4,3 +4,7 @@ Makefile
 *.exp
 *.lib
 *.obj
+
+*.o
+bin/*
+lib/*
