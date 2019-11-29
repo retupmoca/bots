@@ -7,7 +7,7 @@
 
 void _init_events(bots_world *w) {
     if(w->_tick_events == NULL) {
-        w->_tick_events = malloc(sizeof(bots_events*));
+        w->_tick_events = malloc(sizeof(bots_events));
         w->_tick_events->events = malloc(sizeof(bots_event));
         w->_tick_events->_size = 1;
     }
