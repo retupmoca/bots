@@ -117,3 +117,45 @@ num | name
 1 |destruct
 2 |scan
 3 |fire
+
+registers
+
+reg | for
+----|----
+0 | always 0
+1 | general
+2 | general
+3 | general
+4 | general
+5 | general
+6 | general
+7 | stack pointer
+8 | flags
+
+memory map
+
+addr | size | what
+-----|------|-----
+65535 | b | turret: fire
+65533 | w | turret: reserved
+65531 | w | turret: steering
+65530 | b | turret: keepshift
+65528 | w | reserved
+65526 | w | reserved
+65525 | b | radar: scan
+65523 | w | radar: range
+65522 | b | radar: arc
+65520 | w | radar: steering
+65519 | b | radar: keepshift
+65518 | b | radar: reserved
+65516 | w | radar result: range
+65514 | w | radar result: offset
+65512 | w | reserved
+65510 | w | reserved
+65509 | b | nav: throttle
+65508 | b | nav: reserved
+65506 | w | nav: reserved
+65504 | w | nav: steering
+65502 | w | reserved
+65500 | w | reserved
+61439 | - | limit of program space
