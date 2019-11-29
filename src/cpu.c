@@ -4,6 +4,8 @@
 void bots_cpu_execute(bots_cpu* m) {
     if(!m->execute_ready)
         return;
+    m->registers[0] = 0;
+    m->registers[1] = 1;
     (*bots_cpu_oplist[m->op].execute)(m);
 }
 

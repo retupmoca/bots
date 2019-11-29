@@ -182,6 +182,15 @@ void _process_tick(bots_world *w) {
 
         w->cpus[i]->ports[0x1a] = 0;
         w->cpus[i]->ports[0x1b] = 0;
+
+        /* reset */
+        w->cpus[i]->memory[0xffdb] = 0;
+        /* self destruct */
+        w->cpus[i]->memory[0xffda] = 0;
+        /* scan */
+        w->cpus[i]->memory[0xfff5] = 0;
+        /* fire */
+        w->cpus[i]->memory[0xffff] = 0;
     }
 
     /** run CPU cycles **/
@@ -226,6 +235,109 @@ void _process_tick(bots_world *w) {
         scanner_steering = scanner_steering % 256;
         w->tanks[i]->_req_scanner_steering = scanner_steering;
         w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->ports[0x0b];
+
+        /* reset */
+        if(w->cpus[i]->memory[0xffdb]) {
+            w->cpus[i]->fetch_pc = 0;
+            w->cpus[i]->decode_ready = 0;
+            w->cpus[i]->execute_ready = 0;
+        }
+
+        /* self destruct */
+        if(w->cpus[i]->memory[0xffda]) {
+            w->tanks[i]->health = 0;
+            _add_event(w, BOTS_EVENT_DEATH, i);
+        }
+
+        /* scan */
+        if(w->cpus[i]->memory[0xfff5]) {
+            /* get global heading of scanner */
+            uint32_t heading = w->tanks[i]->heading + w->tanks[i]->scanner_offset;
+            
+            /* check angle and range of each bot against scan parameters */
+            int radar_arc = w->cpus[i]->ports[0x0f];
+            if(radar_arc > 64)
+                radar_arc = 64;
+            int radar_range = w->cpus[i]->ports[0x10] << 8;
+            radar_range |= w->cpus[i]->ports[0x11];
+            
+            uint8_t radar_left = (heading - radar_arc) % 256;
+            uint8_t radar_right = (heading + radar_arc) % 256;
+            
+            int seen_index = 0;
+            int seen_bots[256];
+            int32_t seen_bot_range[256];
+            int seen_bot_angle[256];
+            
+            int j;
+            for(j=0; j<w->num_tanks; j++){
+                if(j == i)
+                    continue;
+                if(w->tanks[j]->health <= 0)
+                    continue;
+                
+                int32_t x = w->tanks[j]->x - w->tanks[i]->x;
+                int32_t y = w->tanks[j]->y - w->tanks[i]->y;
+                
+                uint8_t angle = (int)(atan2(x, y) * 128 / M_PI) % 256;
+                int32_t range = (int)(sqrt(y * y + x * x));
+                
+                if(   range <= radar_range
+                   && (   (radar_left < radar_right && angle > radar_left && angle < radar_right)
+                       || (radar_left > radar_right && (angle > radar_left || angle < radar_right)))) {
+                    /* we can see bot i */
+                    seen_bot_range[seen_index] = range;
+                    seen_bot_angle[seen_index] = angle;
+                    seen_bots[seen_index++] = j;
+                }
+            }
+            
+            /* load closest seen bot into ports */
+            uint16_t lowest_range = 0;
+            w->cpus[i]->ports[0x12] = 0;
+            w->cpus[i]->ports[0x13] = 0;
+            w->cpus[i]->ports[0x14] = 0;
+            w->cpus[i]->ports[0x15] = 0;
+            for(i=0; i < seen_index; i++) {
+                if(seen_bot_range[i] < lowest_range || lowest_range == 0) {
+                    lowest_range = seen_bot_range[i];
+                    w->cpus[i]->ports[0x12] = lowest_range >> 8;
+                    w->cpus[i]->ports[0x13] = lowest_range & 0xff;
+                    
+                    /* TODO: give some kind of scanner offset instead of bearing */
+                    w->cpus[i]->ports[0x14] = seen_bot_angle[i] >> 8;
+                    w->cpus[i]->ports[0x15] = seen_bot_angle[i] & 0xff;
+                }
+            }
+        }
+
+        /* fire */
+        if(w->cpus[i]->memory[0xffff]) {
+            bots_shot* s = malloc(sizeof(bots_shot));
+            
+            /* get global heading of gun */
+            s->heading = w->tanks[i]->heading + w->tanks[i]->turret_offset;
+            
+            /* move just far enough that we don't hit ourselves */
+            s->x = w->tanks[i]->x;
+            s->y = w->tanks[i]->y;
+                
+            double rangle = s->heading * M_PI / 128;
+            int dist = 60;
+            int dy = floor(0.5 + (dist * cos(rangle)));
+            int dx = floor(0.5 + (dist * sin(rangle)));
+            s->x += dx;
+            s->y += dy;
+
+            s->bot_id = i;
+            s->id = w->next_shot_id++;
+            
+            /* add shot to world */
+            int i = 0;
+            for(; w->shots[i]; i++)
+                ;
+            w->shots[i] = s;
+        }
     }
 }
 

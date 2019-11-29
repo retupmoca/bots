@@ -4,113 +4,6 @@
 
 #include <bots/ops.h>
 
-void int_rset(bots_cpu* m) {
-    m->fetch_pc = 0;
-    m->decode_ready = 0;
-    m->execute_ready = 0;
-}
-
-void int_destruct(bots_cpu* m) {
-    m->world->tanks[m->bot_id]->health = 0;
-}
-
-void int_scan(bots_cpu* m) {
-    /* get global heading of scanner */
-    uint32_t heading = m->world->tanks[m->bot_id]->heading + m->world->tanks[m->bot_id]->scanner_offset;
-    
-    /* check angle and range of each bot against scan parameters */
-    int radar_arc = m->ports[0x0f];
-    if(radar_arc > 64)
-        radar_arc = 64;
-    int radar_range = m->ports[0x10] << 8;
-    radar_range |= m->ports[0x11];
-    
-    uint8_t radar_left = (heading - radar_arc) % 256;
-    uint8_t radar_right = (heading + radar_arc) % 256;
-    
-    int seen_index = 0;
-    int seen_bots[256];
-    int32_t seen_bot_range[256];
-    int seen_bot_angle[256];
-    
-    int i;
-    for(i=0; i<m->world->num_tanks; i++){
-        if(i == m->bot_id)
-            continue;
-        if(m->world->tanks[i]->health <= 0)
-            continue;
-        
-        int32_t x = m->world->tanks[i]->x - m->world->tanks[m->bot_id]->x;
-        int32_t y = m->world->tanks[i]->y - m->world->tanks[m->bot_id]->y;
-        
-        uint8_t angle = (int)(atan2(x, y) * 128 / M_PI) % 256;
-        int32_t range = (int)(sqrt(y * y + x * x));
-        
-        if(   range <= radar_range
-           && (   (radar_left < radar_right && angle > radar_left && angle < radar_right)
-               || (radar_left > radar_right && (angle > radar_left || angle < radar_right)))) {
-            /* we can see bot i */
-            seen_bot_range[seen_index] = range;
-            seen_bot_angle[seen_index] = angle;
-            seen_bots[seen_index++] = i;
-        }
-    }
-    
-    /* load closest seen bot into ports */
-    uint16_t lowest_range = 0;
-    m->ports[0x12] = 0;
-    m->ports[0x13] = 0;
-    m->ports[0x14] = 0;
-    m->ports[0x15] = 0;
-    for(i=0; i < seen_index; i++) {
-        if(seen_bot_range[i] < lowest_range || lowest_range == 0) {
-            lowest_range = seen_bot_range[i];
-            m->ports[0x12] = lowest_range >> 8;
-            m->ports[0x13] = lowest_range & 0xff;
-            
-            /* TODO: give some kind of scanner offset instead of bearing */
-            m->ports[0x14] = seen_bot_angle[i] >> 8;
-            m->ports[0x15] = seen_bot_angle[i] & 0xff;
-        }
-    }
-}
-
-void int_fire(bots_cpu* m) {
-    bots_shot* s = malloc(sizeof(bots_shot));
-    
-    /* get global heading of gun */
-    s->heading = m->world->tanks[m->bot_id]->heading + m->world->tanks[m->bot_id]->turret_offset;
-    
-    /* move just far enough that we don't hit ourselves */
-    s->x = m->world->tanks[m->bot_id]->x;
-    s->y = m->world->tanks[m->bot_id]->y;
-        
-    double rangle = s->heading * M_PI / 128;
-    int dist = 60;
-    int dy = floor(0.5 + (dist * cos(rangle)));
-    int dx = floor(0.5 + (dist * sin(rangle)));
-    s->x += dx;
-    s->y += dy;
-
-    s->bot_id = m->bot_id;
-    s->id = m->world->next_shot_id++;
-    
-    /* add shot to world */
-    int i = 0;
-    for(; m->world->shots[i]; i++)
-        ;
-    m->world->shots[i] = s;
-}
-
-typedef void (*action)(bots_cpu*);
-
-action int_actions[4] = {
-    &int_rset,
-    &int_destruct,
-    &int_scan,
-    &int_fire
-};
-
 void op_nop(bots_cpu* m) {
     /* nop nop nop */
 }
@@ -234,19 +127,19 @@ void op_not(bots_cpu* m) {
 /* push/pop use register 1 as the stack pointer */
 /* pointer is assumed to be at the end of usable memory and grows down */
 void op_push_r(bots_cpu* m) {
-    m->registers[1] -= 2;
-    m->memory[m->registers[1]] = m->args[0] >> 8;
-    m->memory[m->registers[1] + 1] = m->args[0] & 0xff;
+    m->registers[10] -= 2;
+    m->memory[m->registers[10]] = m->args[0] >> 8;
+    m->memory[m->registers[10] + 1] = m->args[0] & 0xff;
 }
 void op_push_i(bots_cpu* m) {
-    m->registers[1] -= 2;
-    m->memory[m->registers[1]] = m->args[0] >> 8;
-    m->memory[m->registers[1] + 1] = m->args[0] & 0xff;
+    m->registers[10] -= 2;
+    m->memory[m->registers[10]] = m->args[0] >> 8;
+    m->memory[m->registers[10] + 1] = m->args[0] & 0xff;
 }
 void op_pop(bots_cpu* m) {
-    m->registers[m->args[0]] = m->memory[m->registers[1]] << 8;
-    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[1] + 1];
-    m->registers[1] += 2;
+    m->registers[m->args[0]] = m->memory[m->registers[10]] << 8;
+    m->registers[m->args[0]] = m->registers[m->args[0]] | m->memory[m->registers[10] + 1];
+    m->registers[10] += 2;
 }
 /**/
 
@@ -329,25 +222,23 @@ void op_in_i(bots_cpu* m) {
 }
 
 void op_int_r(bots_cpu* m) {
-    (*int_actions[m->registers[m->args[0]]])(m);
 }
 
 void op_int_i(bots_cpu* m) {
-    (*int_actions[m->args[0]])(m);
 }
 
 /* cmp and all jumps use register 0 for flags */
 static void set_compare_flags(bots_cpu* m, uint16_t val_a, uint16_t val_b) {
-    m->registers[0] = m->registers[0] & 0x0fff;
+    m->registers[11] = m->registers[11] & 0x0fff;
     
     if(val_a < val_b)
-        m->registers[0] = m->registers[0] | 0x8000;
+        m->registers[11] = m->registers[11] | 0x8000;
     if(val_a > val_b)
-        m->registers[0] = m->registers[0] | 0x4000;
+        m->registers[11] = m->registers[11] | 0x4000;
     if(val_a == val_b)
-        m->registers[0] = m->registers[0] | 0x2000;
+        m->registers[11] = m->registers[11] | 0x2000;
     if(val_a == 0 && val_b == 0)
-        m->registers[0] = m->registers[0] | 0x1000;
+        m->registers[11] = m->registers[11] | 0x1000;
 }
 
 void op_cmp_rr(bots_cpu* m) {
@@ -376,7 +267,7 @@ void op_jmp_i(bots_cpu* m) {
 }
 
 void op_jls_r(bots_cpu* m) {
-    if(m->registers[0] & 0x8000){
+    if(m->registers[11] & 0x8000){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -384,7 +275,7 @@ void op_jls_r(bots_cpu* m) {
 }
 
 void op_jls_i(bots_cpu* m) {
-    if(m->registers[0] & 0x8000){
+    if(m->registers[11] & 0x8000){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -392,7 +283,7 @@ void op_jls_i(bots_cpu* m) {
 }
 
 void op_jgr_r(bots_cpu* m) {
-    if(m->registers[0] & 0x4000){
+    if(m->registers[11] & 0x4000){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -400,7 +291,7 @@ void op_jgr_r(bots_cpu* m) {
 }
 
 void op_jgr_i(bots_cpu* m) {
-    if(m->registers[0] & 0x4000){
+    if(m->registers[11] & 0x4000){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -408,7 +299,7 @@ void op_jgr_i(bots_cpu* m) {
 }
 
 void op_jne_r(bots_cpu* m) {
-    if(!(m->registers[0] & 0x2000)){
+    if(!(m->registers[11] & 0x2000)){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -416,7 +307,7 @@ void op_jne_r(bots_cpu* m) {
 }
 
 void op_jne_i(bots_cpu* m) {
-    if(!(m->registers[0] & 0x2000)){
+    if(!(m->registers[11] & 0x2000)){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -424,7 +315,7 @@ void op_jne_i(bots_cpu* m) {
 }
 
 void op_jeq_r(bots_cpu* m) {
-    if(m->registers[0] & 0x2000){
+    if(m->registers[11] & 0x2000){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -432,7 +323,7 @@ void op_jeq_r(bots_cpu* m) {
 }
 
 void op_jeq_i(bots_cpu* m) {
-    if(m->registers[0] & 0x2000){
+    if(m->registers[11] & 0x2000){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -440,7 +331,7 @@ void op_jeq_i(bots_cpu* m) {
 }
 
 void op_jge_r(bots_cpu* m) {
-    if(m->registers[0] & 0x6000){
+    if(m->registers[11] & 0x6000){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -448,7 +339,7 @@ void op_jge_r(bots_cpu* m) {
 }
 
 void op_jge_i(bots_cpu* m) {
-    if(m->registers[0] & 0x6000){
+    if(m->registers[11] & 0x6000){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -456,7 +347,7 @@ void op_jge_i(bots_cpu* m) {
 }
 
 void op_jle_r(bots_cpu* m) {
-    if(m->registers[0] & 0xa000){
+    if(m->registers[11] & 0xa000){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -464,7 +355,7 @@ void op_jle_r(bots_cpu* m) {
 }
 
 void op_jle_i(bots_cpu* m) {
-    if(m->registers[0] & 0xa000){
+    if(m->registers[11] & 0xa000){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -472,7 +363,7 @@ void op_jle_i(bots_cpu* m) {
 }
 
 void op_jz_r(bots_cpu* m) {
-    if(m->registers[0] & 0x1000){
+    if(m->registers[11] & 0x1000){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -480,7 +371,7 @@ void op_jz_r(bots_cpu* m) {
 }
 
 void op_jz_i(bots_cpu* m) {
-    if(m->registers[0] & 0x1000){
+    if(m->registers[11] & 0x1000){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -488,7 +379,7 @@ void op_jz_i(bots_cpu* m) {
 }
 
 void op_jnz_r(bots_cpu* m) {
-    if(!(m->registers[0] & 0x1000)){
+    if(!(m->registers[11] & 0x1000)){
         m->fetch_pc = m->registers[m->args[0]];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -496,7 +387,7 @@ void op_jnz_r(bots_cpu* m) {
 }
 
 void op_jnz_i(bots_cpu* m) {
-    if(!(m->registers[0] & 0x1000)){
+    if(!(m->registers[11] & 0x1000)){
         m->fetch_pc = m->args[0];
         m->decode_ready = 0;
         m->execute_ready = 0;
@@ -504,9 +395,9 @@ void op_jnz_i(bots_cpu* m) {
 }
 
 void op_call_r(bots_cpu* m) {
-    m->registers[1] -= 2;
-    m->memory[m->registers[1]] = m->decode_pc >> 8;
-    m->memory[m->registers[1] + 1] = m->decode_pc & 0xff;
+    m->registers[10] -= 2;
+    m->memory[m->registers[10]] = m->decode_pc >> 8;
+    m->memory[m->registers[10] + 1] = m->decode_pc & 0xff;
 
     m->fetch_pc = m->registers[m->args[0]];
     m->decode_ready = 0;
@@ -514,11 +405,11 @@ void op_call_r(bots_cpu* m) {
 }
 
 void op_call_i(bots_cpu* m) {
-    m->registers[1] -= 2;
+    m->registers[10] -= 2;
     uint16_t pc = m->pc;
     pc += 3;
-    m->memory[m->registers[1]] = pc >> 8;
-    m->memory[m->registers[1] + 1] = pc & 0xff;
+    m->memory[m->registers[10]] = pc >> 8;
+    m->memory[m->registers[10] + 1] = pc & 0xff;
 
     /* the cpu fetcher already followed the jump */
     /*m->fetch_pc = m->args[0];
@@ -528,9 +419,9 @@ void op_call_i(bots_cpu* m) {
 
 void op_ret(bots_cpu* m) {
     uint16_t pc = 0;
-    pc = m->memory[m->registers[1]] << 8;
-    pc = pc | m->memory[m->registers[1] + 1];
-    m->registers[1] += 2;
+    pc = m->memory[m->registers[10]] << 8;
+    pc = pc | m->memory[m->registers[10] + 1];
+    m->registers[10] += 2;
 
     m->fetch_pc = pc;
     m->decode_ready = 0;

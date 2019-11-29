@@ -5,7 +5,7 @@ out.ii 16 50
 !mainloop
 out.ii 2 16
 out.ii 4 16
-int.i 3
+sb.rir 0 65535 1
 
 ; stay straight for a while
 mov.i 2 0

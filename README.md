@@ -123,39 +123,44 @@ registers
 reg | for
 ----|----
 0 | always 0
-1 | general
+1 | always 1
 2 | general
 3 | general
 4 | general
 5 | general
 6 | general
-7 | stack pointer
-8 | flags
+7 | general
+8 | general
+9 | general
+10 | stack pointer
+11 | flags
 
 memory map
 
-addr | size | what
------|------|-----
-65535 | b | turret: fire
-65533 | w | turret: reserved
-65531 | w | turret: steering
-65530 | b | turret: keepshift
-65528 | w | reserved
-65526 | w | reserved
-65525 | b | radar: scan
-65523 | w | radar: range
-65522 | b | radar: arc
-65520 | w | radar: steering
-65519 | b | radar: keepshift
-65518 | b | radar: reserved
-65516 | w | radar result: range
-65514 | w | radar result: offset
-65512 | w | reserved
-65510 | w | reserved
-65509 | b | nav: throttle
-65508 | b | nav: reserved
-65506 | w | nav: reserved
-65504 | w | nav: steering
-65502 | w | reserved
-65500 | w | reserved
-61439 | - | limit of program space
+addr hex | addr dec | size | what
+---------|----------|------|-----
+0xffff | 65535 | b | turret: fire
+0xfffd | 65533 | w | turret: reserved
+0xfffb | 65531 | w | turret: steering
+0xfffa | 65530 | b | turret: keepshift
+0xfff8 | 65528 | w | reserved
+0xfff6 | 65526 | w | reserved
+0xfff5 | 65525 | b | radar: scan
+0xfff3 | 65523 | w | radar: range
+0xfff2 | 65522 | b | radar: arc
+0xfff0 | 65520 | w | radar: steering
+0xffef | 65519 | b | radar: keepshift
+0xffee | 65518 | b | radar: reserved
+0xffec | 65516 | w | radar result: range
+0xffea | 65514 | w | radar result: offset
+0xffe8 | 65512 | w | reserved
+0xffe6 | 65510 | w | reserved
+0xffe5 | 65509 | b | nav: throttle
+0xffe4 | 65508 | b | nav: reserved
+0xffe2 | 65506 | w | nav: reserved
+0xffe0 | 65504 | w | nav: steering
+0xffde | 65502 | w | reserved
+0xffdc | 65500 | w | reserved
+0xffdb | 65499 | b | trigger reset
+0xffda | 65498 | b | trigger self destruct
+0xefff | 61439 | - | limit of program space

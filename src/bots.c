@@ -52,7 +52,7 @@ char bots_add_bot(bots_world* g, char* memory, int size) {
 
     tank->health = 100;
     cpu->mem_max = 65535;
-    cpu->registers[1] = 65534;
+    cpu->registers[10] = 0xefff;
     memcpy(cpu->memory, memory, size);
 
     bots_world_add_bot(g, cpu, tank);
