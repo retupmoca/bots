@@ -176,6 +176,12 @@ void _process_tick(bots_world *w) {
 
         w->cpus[i]->ports[8] = w->tanks[i]->_req_scanner_steering >> 8;
         w->cpus[i]->ports[9] = w->tanks[i]->_req_scanner_steering & 0xff;
+
+        w->cpus[i]->ports[0x18] = 0;
+        w->cpus[i]->ports[0x19] = 0;
+
+        w->cpus[i]->ports[0x1a] = 0;
+        w->cpus[i]->ports[0x1b] = 0;
     }
 
     /** run CPU cycles **/
@@ -200,11 +206,17 @@ void _process_tick(bots_world *w) {
 
         uint16_t steering = w->cpus[i]->ports[2] << 8;
         steering = steering | w->cpus[i]->ports[3];
+        uint16_t adjust_steering = w->cpus[i]->ports[0x18] << 8;
+        adjust_steering |= w->cpus[i]->ports[0x19];
+        steering += adjust_steering;
         steering = steering % 256;
         w->tanks[i]->_req_steering = steering;
 
         uint16_t turret_steering = w->cpus[i]->ports[4] << 8;
         turret_steering = turret_steering | w->cpus[i]->ports[5];
+        uint16_t adjust_turret_steering = w->cpus[i]->ports[0x1a] << 8;
+        adjust_turret_steering |= w->cpus[i]->ports[0x1b];
+        turret_steering += adjust_turret_steering;
         turret_steering = turret_steering % 256;
         w->tanks[i]->_req_turret_steering = turret_steering;
         w->tanks[i]->_req_turret_keepshift = w->cpus[i]->ports[7];

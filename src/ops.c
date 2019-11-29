@@ -16,7 +16,7 @@ void int_destruct(bots_cpu* m) {
 
 void int_scan(bots_cpu* m) {
     /* get global heading of scanner */
-    uint32_t heading = m->world->tanks[m->bot_id]->heading + m->world->tanks[m->bot_id]->turret_offset + m->world->tanks[m->bot_id]->scanner_offset;
+    uint32_t heading = m->world->tanks[m->bot_id]->heading + m->world->tanks[m->bot_id]->scanner_offset;
     
     /* check angle and range of each bot against scan parameters */
     int radar_arc = m->ports[0x0f];
