@@ -5,7 +5,32 @@
 #include <bots/world.h>
 #include <bots/cpu.h>
 
-void bots_world_tick(bots_world* w){
+void _init_events(bots_world *w) {
+    if(w->_tick_events == NULL) {
+        w->_tick_events = malloc(sizeof(bots_events*));
+        w->_tick_events->events = malloc(sizeof(bots_event*));
+        w->_tick_events->_size = 1;
+    }
+
+    w->_tick_events->event_count = 0;
+}
+
+void _add_event(bots_world *w, uint8_t event_type, uint8_t bot_id) {
+    if(w->_tick_events->event_count == w->_tick_events->_size) {
+        w->_tick_events->_size *= 2;
+        w->_tick_events = realloc(w->_tick_events,
+                                  sizeof(bots_events*) * w->_tick_events->_size);
+    }
+    bots_event *event = w->_tick_events->events
+                        + (w->_tick_events->event_count)++;
+
+    event->event_type = event_type;
+    event->bot_id = bot_id;
+}
+
+bots_events* bots_world_tick(bots_world* w){
+    _init_events(w);
+
     int i = 0;
     bots_shot* s = 0;
     /* physics */
@@ -25,8 +50,10 @@ void bots_world_tick(bots_world* w){
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
-                if(w->tanks[j]->health < 0)
+                if(w->tanks[j]->health <= 0) {
                     w->tanks[j]->health = 0;
+                    _add_event(w, BOTS_EVENT_DEATH, j);
+                }
 
                 /* delete the shot */
                 free(s);
@@ -185,6 +212,8 @@ void bots_world_tick(bots_world* w){
         bots_cpu_decode(w->cpus[i]);
         bots_cpu_fetch(w->cpus[i]);
     }
+
+    return w->_tick_events;
 }
 
 void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {

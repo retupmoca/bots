@@ -17,6 +17,13 @@ void bots_free_world(bots_world* g){
         free(g->tanks[i]);
         free(g->cpus[i]);
     }
+
+    if(g->_tick_events){
+        if(g->_tick_events->events) {
+            free(g->_tick_events->events);
+        }
+        free(g->_tick_events);
+    }
     free(g);
 }
 
@@ -53,6 +60,6 @@ char bots_add_bot(bots_world* g, char* memory, int size) {
     return 1;
 }
 
-void bots_tick(bots_world* g) {
-    bots_world_tick(g);
+bots_events* bots_tick(bots_world* g) {
+    return bots_world_tick(g);
 }

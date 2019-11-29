@@ -50,12 +50,31 @@ typedef struct {
     long long id;
 } bots_shot;
 
+#define BOTS_EVENT_NOTHING 0
+#define BOTS_EVENT_FIRE 1
+#define BOTS_EVENT_DEATH 2
+
+typedef struct {
+    uint8_t event_type;
+
+    uint8_t bot_id;
+} bots_event;
+
+typedef struct {
+    bots_event *events;
+    int event_count;
+
+    int _size;
+} bots_events;
+
 struct _bots_world {
     uint8_t num_tanks;
     bots_cpu* cpus[16];
     bots_tank* tanks[16];
     bots_shot* shots[16*1024]; /* we've got the memory... */
     long long next_shot_id;
+    
+    bots_events* _tick_events;
 };
 
 #endif
