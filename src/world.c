@@ -8,7 +8,7 @@
 void _init_events(bots_world *w) {
     if(w->_tick_events == NULL) {
         w->_tick_events = malloc(sizeof(bots_events*));
-        w->_tick_events->events = malloc(sizeof(bots_event*));
+        w->_tick_events->events = malloc(sizeof(bots_event));
         w->_tick_events->_size = 1;
     }
 
@@ -18,8 +18,9 @@ void _init_events(bots_world *w) {
 void _add_event(bots_world *w, uint8_t event_type, uint8_t bot_id) {
     if(w->_tick_events->event_count == w->_tick_events->_size) {
         w->_tick_events->_size *= 2;
-        w->_tick_events = realloc(w->_tick_events,
-                                  sizeof(bots_events*) * w->_tick_events->_size);
+        w->_tick_events->events = realloc(w->_tick_events->events,
+                                          sizeof(bots_event)
+                                           * w->_tick_events->_size);
     }
     bots_event *event = w->_tick_events->events
                         + (w->_tick_events->event_count)++;
@@ -31,9 +32,9 @@ void _add_event(bots_world *w, uint8_t event_type, uint8_t bot_id) {
 bots_events* bots_world_tick(bots_world* w){
     _init_events(w);
 
+    /** run world physics **/
     int i = 0;
     bots_shot* s = 0;
-    /* physics */
     /* shots */
     for(s=w->shots[0], i=0; s; s=w->shots[++i]) {
         /* check collision */
@@ -87,8 +88,10 @@ bots_events* bots_world_tick(bots_world* w){
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
-                if(w->tanks[j]->health < 0)
+                if(w->tanks[j]->health <= 0) {
                     w->tanks[j]->health = 0;
+                    _add_event(w, BOTS_EVENT_DEATH, j);
+                }
 
                 /* delete the shot */
                 free(s);
@@ -199,7 +202,7 @@ bots_events* bots_world_tick(bots_world* w){
         w->cpus[i]->ports[9] = 0;
     }
 
-    /* execute */
+    /** run CPU cycles **/
     for(i=0; i < w->num_tanks; i++){
         if(w->tanks[i]->health <= 0)
             continue;
@@ -212,6 +215,10 @@ bots_events* bots_world_tick(bots_world* w){
         bots_cpu_decode(w->cpus[i]);
         bots_cpu_fetch(w->cpus[i]);
     }
+
+    /** read CPU memory and update physics data **/
+    /* TODO */
+
 
     return w->_tick_events;
 }
