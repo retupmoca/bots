@@ -46,6 +46,7 @@ void _physics_tick(bots_world *w) {
 	       && w->tanks[j]->health > 0){
                 /* hit! */
                 hit = 1;
+                _add_event(w, BOTS_EVENT_HIT, j);
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
@@ -83,6 +84,7 @@ void _physics_tick(bots_world *w) {
                && s->y <= w->tanks[j]->y + 40
 	       && w->tanks[j]->health > 0){
                 /* hit! */
+                _add_event(w, BOTS_EVENT_HIT, j);
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
@@ -309,6 +311,7 @@ void _process_tick(bots_world *w) {
                     w->cpus[i]->ports[0x15] = seen_bot_angle[i] & 0xff;
                 }
             }
+            _add_event(w, BOTS_EVENT_SCAN, i);
         }
 
         /* fire */
@@ -337,6 +340,7 @@ void _process_tick(bots_world *w) {
             for(; w->shots[i]; i++)
                 ;
             w->shots[i] = s;
+            _add_event(w, BOTS_EVENT_FIRE, i);
         }
     }
 }

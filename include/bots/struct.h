@@ -60,6 +60,8 @@ typedef struct {
 #define BOTS_EVENT_NOTHING 0
 #define BOTS_EVENT_FIRE 1
 #define BOTS_EVENT_DEATH 2
+#define BOTS_EVENT_SCAN 3
+#define BOTS_EVENT_HIT 4
 
 typedef struct {
     uint8_t event_type;
