@@ -32,13 +32,20 @@ typedef struct {
 typedef struct {
     int32_t x;
     int32_t y;
+
     uint32_t heading;
     int32_t speed;
-    
     uint32_t turret_offset;
     uint32_t scanner_offset;
-    
+
     uint8_t health;
+
+    uint16_t _req_steering;
+    int16_t _req_throttle;
+    uint16_t _req_turret_steering;
+    uint8_t _req_turret_keepshift;
+    uint16_t _req_scanner_steering;
+    uint8_t _req_scanner_keepshift;
 } bots_tank;
 
 typedef struct {
