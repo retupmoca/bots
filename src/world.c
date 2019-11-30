@@ -167,23 +167,20 @@ void _physics_tick(bots_world *w) {
 }
 
 void _process_tick(bots_world *w) {
-    /** write I/O ports to CPU **/
     int i;
     for(i=0; i < w->num_tanks; i++){
-        w->cpus[i]->ports[2] = w->tanks[i]->_req_steering >> 8;
-        w->cpus[i]->ports[3] = w->tanks[i]->_req_steering & 0xff;
+        if(w->tanks[i]->health <= 0)
+            continue;
 
-        w->cpus[i]->ports[4] = w->tanks[i]->_req_turret_steering >> 8;
-        w->cpus[i]->ports[5] = w->tanks[i]->_req_turret_steering & 0xff;
+        /** write I/O ports to CPU **/
+        w->cpus[i]->memory[0xffe0] = w->tanks[i]->_req_steering >> 8;
+        w->cpus[i]->memory[0xffe1] = w->tanks[i]->_req_steering & 0xff;
 
-        w->cpus[i]->ports[8] = w->tanks[i]->_req_scanner_steering >> 8;
-        w->cpus[i]->ports[9] = w->tanks[i]->_req_scanner_steering & 0xff;
+        w->cpus[i]->memory[0xfffb] = w->tanks[i]->_req_turret_steering >> 8;
+        w->cpus[i]->memory[0xfffc] = w->tanks[i]->_req_turret_steering & 0xff;
 
-        w->cpus[i]->ports[0x18] = 0;
-        w->cpus[i]->ports[0x19] = 0;
-
-        w->cpus[i]->ports[0x1a] = 0;
-        w->cpus[i]->ports[0x1b] = 0;
+        w->cpus[i]->memory[0xfff0] = w->tanks[i]->_req_scanner_steering >> 8;
+        w->cpus[i]->memory[0xfff1] = w->tanks[i]->_req_scanner_steering & 0xff;
 
         /* reset */
         w->cpus[i]->memory[0xffdb] = 0;
@@ -193,12 +190,8 @@ void _process_tick(bots_world *w) {
         w->cpus[i]->memory[0xfff5] = 0;
         /* fire */
         w->cpus[i]->memory[0xffff] = 0;
-    }
 
-    /** run CPU cycles **/
-    for(i=0; i < w->num_tanks; i++){
-        if(w->tanks[i]->health <= 0)
-            continue;
+        /** run CPU cycles **/
         /* we do these "backwords" in order to simulate a 3-stage pipeline */
         bots_cpu_execute(w->cpus[i]);
         bots_cpu_decode(w->cpus[i]);
@@ -207,36 +200,27 @@ void _process_tick(bots_world *w) {
         bots_cpu_execute(w->cpus[i]);
         bots_cpu_decode(w->cpus[i]);
         bots_cpu_fetch(w->cpus[i]);
-    }
 
-    /** read I/O ports from CPU **/
-    for(i=0; i < w->num_tanks; i++){
-        int16_t throttle = w->cpus[i]->ports[0] << 8;
-        throttle = throttle | w->cpus[i]->ports[1];
+        /** read I/O ports from CPU **/
+        int8_t throttle = w->cpus[i]->memory[0xffe5];
         w->tanks[i]->_req_throttle = throttle;
 
-        uint16_t steering = w->cpus[i]->ports[2] << 8;
-        steering = steering | w->cpus[i]->ports[3];
-        uint16_t adjust_steering = w->cpus[i]->ports[0x18] << 8;
-        adjust_steering |= w->cpus[i]->ports[0x19];
-        steering += adjust_steering;
+        uint16_t steering = w->cpus[i]->memory[0xffe0] << 8;
+        steering = steering | w->cpus[i]->memory[0xffe1];
         steering = steering % 256;
         w->tanks[i]->_req_steering = steering;
 
-        uint16_t turret_steering = w->cpus[i]->ports[4] << 8;
-        turret_steering = turret_steering | w->cpus[i]->ports[5];
-        uint16_t adjust_turret_steering = w->cpus[i]->ports[0x1a] << 8;
-        adjust_turret_steering |= w->cpus[i]->ports[0x1b];
-        turret_steering += adjust_turret_steering;
+        uint16_t turret_steering = w->cpus[i]->memory[0xfffb] << 8;
+        turret_steering = turret_steering | w->cpus[i]->memory[0xfffc];
         turret_steering = turret_steering % 256;
         w->tanks[i]->_req_turret_steering = turret_steering;
-        w->tanks[i]->_req_turret_keepshift = w->cpus[i]->ports[7];
+        w->tanks[i]->_req_turret_keepshift = w->cpus[i]->memory[0xfffa];
 
-        uint16_t scanner_steering = w->cpus[i]->ports[8] << 8;
-        scanner_steering = scanner_steering | w->cpus[i]->ports[9];
+        uint16_t scanner_steering = w->cpus[i]->memory[0xfff0] << 8;
+        scanner_steering = scanner_steering | w->cpus[i]->memory[0xfff1];
         scanner_steering = scanner_steering % 256;
         w->tanks[i]->_req_scanner_steering = scanner_steering;
-        w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->ports[0x0b];
+        w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->memory[0xffef];
 
         /* reset */
         if(w->cpus[i]->memory[0xffdb]) {
@@ -257,11 +241,11 @@ void _process_tick(bots_world *w) {
             uint32_t heading = w->tanks[i]->heading + w->tanks[i]->scanner_offset;
             
             /* check angle and range of each bot against scan parameters */
-            int radar_arc = w->cpus[i]->ports[0x0f];
+            int radar_arc = w->cpus[i]->memory[0xfff2];
             if(radar_arc > 64)
                 radar_arc = 64;
-            int radar_range = w->cpus[i]->ports[0x10] << 8;
-            radar_range |= w->cpus[i]->ports[0x11];
+            int radar_range = w->cpus[i]->memory[0xfff3] << 8;
+            radar_range |= w->cpus[i]->memory[0xfff4];
             
             uint8_t radar_left = (heading - radar_arc) % 256;
             uint8_t radar_right = (heading + radar_arc) % 256;
@@ -296,19 +280,19 @@ void _process_tick(bots_world *w) {
             
             /* load closest seen bot into ports */
             uint16_t lowest_range = 0;
-            w->cpus[i]->ports[0x12] = 0;
-            w->cpus[i]->ports[0x13] = 0;
-            w->cpus[i]->ports[0x14] = 0;
-            w->cpus[i]->ports[0x15] = 0;
+            w->cpus[i]->memory[0xffea] = 0;
+            w->cpus[i]->memory[0xffeb] = 0;
+            w->cpus[i]->memory[0xffec] = 0;
+            w->cpus[i]->memory[0xffed] = 0;
             for(j=0; j < seen_index; j++) {
                 if(seen_bot_range[j] < lowest_range || lowest_range == 0) {
                     lowest_range = seen_bot_range[j];
-                    w->cpus[i]->ports[0x12] = lowest_range >> 8;
-                    w->cpus[i]->ports[0x13] = lowest_range & 0xff;
+                    w->cpus[i]->memory[0xffec] = lowest_range >> 8;
+                    w->cpus[i]->memory[0xffed] = lowest_range & 0xff;
                     
                     /* TODO: give some kind of scanner offset instead of bearing */
-                    w->cpus[i]->ports[0x14] = seen_bot_angle[j] >> 8;
-                    w->cpus[i]->ports[0x15] = seen_bot_angle[j] & 0xff;
+                    w->cpus[i]->memory[0xffea] = seen_bot_angle[j] >> 8;
+                    w->cpus[i]->memory[0xffeb] = seen_bot_angle[j] & 0xff;
                 }
             }
             _add_event(w, BOTS_EVENT_SCAN, i);
@@ -360,7 +344,6 @@ void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {
     }
     m->world = w;
     m->bot_id = w->num_tanks;
-    m->ports[0x17] = m->bot_id;
     w->cpus[w->num_tanks] = m;
     w->tanks[w->num_tanks] = p;
     w->num_tanks++;

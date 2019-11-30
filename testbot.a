@@ -1,17 +1,26 @@
-out.ii 0 100
-out.ii 14 16
-out.ii 16 50
+; throttle 100
+mov.i 2 100
+sb.rir 0 65509 2
 
+; scan arc 16
+mov.i 2 16
+sb.rir 0 65522 2
+
+; scan range 50
+mov.i 2 50
+sw.rir 0 65523 2
+
+mov.i 2 16
 !mainloop
-out.ii 2 16
-out.ii 4 16
-sb.rir 0 65535 1
+sw.rir 0 65504 2 ; steer hull
+sw.rir 0 65531 2 ; steer turret
+sb.rir 0 65535 1 ; fire
 
 ; stay straight for a while
-mov.i 2 0
+mov.i 3 0
 !delay
-add.ri 2 2 1
-cmp.ri 2 10
+add.ri 3 3 1
+cmp.ri 3 10
 jle.i !delay
 
 jmp.i !mainloop
