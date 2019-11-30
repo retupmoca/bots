@@ -300,15 +300,15 @@ void _process_tick(bots_world *w) {
             w->cpus[i]->ports[0x13] = 0;
             w->cpus[i]->ports[0x14] = 0;
             w->cpus[i]->ports[0x15] = 0;
-            for(i=0; i < seen_index; i++) {
-                if(seen_bot_range[i] < lowest_range || lowest_range == 0) {
-                    lowest_range = seen_bot_range[i];
+            for(j=0; j < seen_index; j++) {
+                if(seen_bot_range[j] < lowest_range || lowest_range == 0) {
+                    lowest_range = seen_bot_range[j];
                     w->cpus[i]->ports[0x12] = lowest_range >> 8;
                     w->cpus[i]->ports[0x13] = lowest_range & 0xff;
                     
                     /* TODO: give some kind of scanner offset instead of bearing */
-                    w->cpus[i]->ports[0x14] = seen_bot_angle[i] >> 8;
-                    w->cpus[i]->ports[0x15] = seen_bot_angle[i] & 0xff;
+                    w->cpus[i]->ports[0x14] = seen_bot_angle[j] >> 8;
+                    w->cpus[i]->ports[0x15] = seen_bot_angle[j] & 0xff;
                 }
             }
             _add_event(w, BOTS_EVENT_SCAN, i);
