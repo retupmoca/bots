@@ -178,8 +178,8 @@ void _process_tick(bots_world *w) {
                     w->tanks[i]->peripherals + j, w, i, 1);
 
         /** run CPU cycles **/
-        bots_cpu_cycle(w->cpus[i]);
-        bots_cpu_cycle(w->cpus[i]);
+        for(int j=0; j<w->c_cpus_per_tick; j++)
+            bots_cpu_cycle(w->cpus[i]);
 
         /** read I/O ports from CPU **/
         for(int j=0; w->tanks[i]->peripherals[j].mem_base != 0; j++)

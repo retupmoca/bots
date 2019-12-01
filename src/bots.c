@@ -9,6 +9,8 @@
 bots_world* bots_create_world() {
     bots_world* g = (bots_world*)calloc(1, sizeof(bots_world));
 
+    g->c_cpus_per_tick = 2;
+
     return g;
 }
 

@@ -93,6 +93,8 @@ struct _bots_world {
     bots_tank* tanks[16];
     bots_shot* shots[16*1024]; /* we've got the memory... */
     long long next_shot_id;
+
+    uint8_t c_cpus_per_tick;
     
     bots_events* _tick_events;
 };
