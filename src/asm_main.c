@@ -118,6 +118,8 @@ int write_inst(FILE* f, inst* in) {
                 int32_t piece;
                 if(is_reg)
                     piece = atoi(in->args[j] + 1);
+                else if(in->args[j][0] == '0' && in->args[j][1] == 'x')
+                    sscanf(in->args[j], "%x", &piece);
                 else
                     piece = atoi(in->args[j]);
 
