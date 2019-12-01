@@ -43,6 +43,9 @@ static void decode(bots_cpu *m) {
 static void execute(bots_cpu *m) {
     if(m->decode_flag == 0)
         return;
+
+    m->registers[0] = 0;
+    m->registers[1] = 1;
  
     uint8_t done = (*bots_cpu_oplist[m->decoded_opcode])(
             m,
