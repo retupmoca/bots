@@ -7,23 +7,24 @@ typedef struct _bots_world bots_world;
 
 typedef struct {
     /* cpu */
-    uint16_t registers[8];
-    uint16_t pc;
-    uint16_t mem_max;
+    uint16_t registers[12];
     uint8_t memory[65536];
-    
-    uint8_t execute_ready;
-    uint8_t op;
-    uint16_t args[4];
-    
-    uint8_t decode_ready;
-    uint16_t decode_pc;
-    uint8_t decode_bytes[8];
+    uint16_t user_mem_max;
 
+    uint8_t fetch_flag;
     uint16_t fetch_pc;
-    /**/
+    uint16_t fetched_pc;
+    uint32_t fetched_instruction;
 
-    uint8_t ports[28];
+    uint8_t decode_flag;
+    uint8_t decoded_pc;
+    uint8_t decoded_opcode;
+    uint8_t decoded_flags;
+    uint8_t decoded_ra;
+    uint8_t decoded_rb;
+    uint16_t decoded_imm;
+
+    uint8_t execute_cycle;
 
     bots_world* world;
     uint8_t bot_id;

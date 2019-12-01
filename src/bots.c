@@ -51,7 +51,7 @@ char bots_add_bot(bots_world* g, char* memory, int size) {
     bots_tank* tank = (bots_tank*)calloc(1, sizeof(bots_tank));
 
     tank->health = 100;
-    cpu->mem_max = 65535;
+    cpu->user_mem_max = 0xefff;
     cpu->registers[10] = 0xefff;
     memcpy(cpu->memory, memory, size);
 

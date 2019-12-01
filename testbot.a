@@ -1,26 +1,26 @@
 ; throttle 100
-mov.i 2 100
-sb.rir 0 65509 2
+add r2 r0 100
+store.b r0 65509 r2
 
 ; scan arc 16
-mov.i 2 16
-sb.rir 0 65522 2
+add r2 r0 16
+store.b r0 65522 r2
 
 ; scan range 50
-mov.i 2 50
-sw.rir 0 65523 2
+add r2 r0 50
+store r0 65523 r2
 
-mov.i 2 16
+add r2 r0 16
 !mainloop
-sw.rir 0 65504 2 ; steer hull
-sw.rir 0 65531 2 ; steer turret
-sb.rir 0 65535 1 ; fire
+store r0 65504 r2 ; steer hull
+store r0 65531 r2 ; steer turret
+store.b r0  65535 r1 ; fire
 
 ; stay straight for a while
-mov.i 3 0
+add r3 r0 0
 !delay
-add.ri 3 3 1
-cmp.ri 3 10
-jle.i !delay
+add r3 r3 1
+cmp r3 10
+jmp.<= r0 !delay
 
-jmp.i !mainloop
+jmp r0 !mainloop

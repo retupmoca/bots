@@ -1,90 +1,41 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <bots/ops.h>
+#include <stdint.h>
 
 typedef struct {
     char* name;
+    char* flags;
+    int argcount;
+    int opts;
 } asm_opdata;
 
-asm_opdata mydata[BOTS_CPU_OPCOUNT] = {
-    { "nop" },
-    { "mov.r" },
-    { "mov.i" },
-    { "add.rr" },
-    { "add.ri" },
-    { "sub.rr" },
-    { "sub.ri" },
-    { "sub.ir" },
-    { "mul.rr" },
-    { "mul.ri" },
-    { "div.rr" },
-    { "div.ri" },
-    { "div.ir" },
-    { "mod.rr" },
-    { "mod.ri" },
-    { "mod.ir" },
-    { "neg" },
-    { "or.rr" },
-    { "or.ri" },
-    { "and.rr" },
-    { "and.ri" },
-    { "xor.rr" },
-    { "xor.ri" },
-    { "shl.rr" },
-    { "shl.ri" },
-    { "shl.ir" },
-    { "shr.rr" },
-    { "shr.ri" },
-    { "shr.ir" },
-    { "not" },
-    { "push.r" },
-    { "push.i" },
-    { "pop" },
-    { "sw.rrr" },
-    { "sb.rrr" },
-    { "sw.rir" },
-    { "sb.rir" },
-    { "lw.rrr" },
-    { "lb.rrr" },
-    { "lw.rri" },
-    { "lb.rri" },
-    { "out.rr" },
-    { "out.ri" },
-    { "out.ir" },
-    { "out.ii" },
-    { "in.r" },
-    { "in.i" },
-    { "int.r" },
-    { "int.i" },
-    { "cmp.rr" },
-    { "cmp.ri" },
-    { "cmp.ir" },
-    { "jmp.r" },
-    { "jmp.i" },
-    { "jls.r" },
-    { "jls.i" },
-    { "jgr.r" },
-    { "jgr.i" },
-    { "jne.r" },
-    { "jne.i" },
-    { "jeq.r" },
-    { "jeq.i" },
-    { "jge.r" },
-    { "jge.i" },
-    { "jle.r" },
-    { "jle.i" },
-    { "jz.r" },
-    { "jz.i" },
-    { "jnz.r" },
-    { "jnz.i" },
-    { "call.r" },
-    { "call.i" },
-    { "ret" }
+#define OPCOUNT 16
+#define OPT_CAN_SWAP 1
+#define OPT_START_RB 2
+
+asm_opdata ops[OPCOUNT] = {
+    { "nop", "", 0, 0 },
+    { "add", "", 3, 0 },
+    { "sub", "", 3, OPT_CAN_SWAP },
+    { "mul", "", 3, 0 },
+    { "div", "  %", 3, OPT_CAN_SWAP },
+    { "or", "", 3, 0 },
+    { "and", "", 3, 0 },
+    { "xor", "", 3, 0 },
+    { "shift", "  <", 3, OPT_CAN_SWAP },
+    { "not", "", 2, 0 },
+    { "push", "", 1, 0 },
+    { "pop", "", 1, 0 },
+    { "store", " b", 3, OPT_START_RB },
+    { "load", " b", 3, 0 },
+    { "cmp", "", 2, OPT_START_RB | OPT_CAN_SWAP },
+    { "jmp", " zZ<=!>c", 2, OPT_START_RB }
 };
 
 typedef struct {
     char* name;
+    char* flags;
     char* args[3];
     int argcount;
 } inst;
@@ -94,25 +45,116 @@ typedef struct {
     int address;
 } label_pos;
 
-void write_inst(FILE* f, inst* in) {
-    int i = 0;
-    for(;i<BOTS_CPU_OPCOUNT;i++){
-        if(strcmp(mydata[i].name, in->name) == 0){
-            putc(i, f);
+int write_inst(FILE* f, inst* in) {
+    uint8_t op = 0;
+    uint8_t flags = 0;
+    uint8_t ra = 0;
+    uint8_t rb = 0;
+    uint16_t imm = 0;
 
-            int numargs = bots_cpu_oplist[i].argcount;
+    int i = 0;
+    for(;i<OPCOUNT;i++){
+        if(strcmp(ops[i].name, in->name) == 0){
             int j = 0;
-            for(;j < numargs; j++){
-                int32_t piece = atoi(in->args[j]);
-                if(bots_cpu_oplist[i].arg_sizes[j] == 2) {
-                    putc((char)((piece & 0xff00) >> 8), f);
-                    putc((char)(piece & 0x00ff), f);
-                } else {
-                    putc((char)(piece & 0x00ff), f);
+
+            op = i;
+
+            if(in->flags) {
+                for(int k=0; in->flags[k] != '\0'; k++) {
+                    char found = 0;
+                    for(j=0; ops[i].flags[j] != '\0'; j++) {
+                        if(in->flags[k] == ops[i].flags[j]) {
+                            found = 1;
+                            if(j < 4)
+                                flags |= 0x08 >> j;
+                            else
+                                ra |= 0x08 >> (j - 4);
+                        }
+                    }
+                    if(!found) {
+                        printf("ERR: Unknown flag %c", in->flags[k]);
+                        return 2;
+                    }
+                }
+            }
+
+            int numargs = ops[i].argcount;
+            char can_swap = ops[i].opts & OPT_CAN_SWAP;
+            char start_rb = ops[i].opts & OPT_START_RB;
+            char saw_imm = 0;
+            for(j=0; j < numargs; j++){
+                char need_reg = 0;
+                if(j == 0 && !(can_swap && start_rb)) {
+                    need_reg = 1;
+                }
+                if(j == 1 && !(can_swap || start_rb)) {
+                    need_reg = 1;
+                }
+
+                char is_reg = (in->args[j][0] == 'r');
+                if(!is_reg && need_reg) {
+                    printf("ERR: Opcode requires argument %d to be a register (r0-r11)",
+                           j+1);
+                    return 2;
+                }
+                if(!is_reg)
+                    saw_imm++;
+                if(saw_imm > 1) {
+                    printf("ERR: Opcode can only take a single immediate value");
+                    return 2;
+                }
+
+                /* set flag for immediate-as-register */
+                if(j == 2 && !saw_imm)
+                    flags |= 0x08;
+                if(j == 1 && start_rb && !saw_imm)
+                    flags |= 0x08;
+                /* set flag for swapped order of immediate */
+                if(j == 1 && !start_rb && can_swap && !is_reg)
+                    flags |= 0x04;
+                if(j == 0 && start_rb && can_swap && !is_reg)
+                    flags |= 0x04;
+
+                int32_t piece;
+                if(is_reg)
+                    piece = atoi(in->args[j] + 1);
+                else
+                    piece = atoi(in->args[j]);
+
+                if(!is_reg)
+                    imm = piece;
+                else {
+                    if(start_rb) {
+                        if(j == 0)
+                            rb = piece;
+                        if(j == 1 && !saw_imm)
+                            imm = piece;
+                        if(j == 1 && saw_imm)
+                            rb = piece;
+                        if(j == 2)
+                            ra = piece;
+                    }
+                    else {
+                        if(j == 0)
+                            ra = piece;
+                        if(j == 1)
+                            rb = piece;
+                        if(j == 2 && !saw_imm)
+                            imm = piece;
+                        if(j == 2 && saw_imm)
+                            rb = piece;
+                    }
                 }
             }
         }
     }
+
+    putc((op << 4) | flags, f);
+    putc((ra << 4) | rb, f);
+    putc(imm >> 8, f);
+    putc(imm & 0xff, f);
+
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -223,12 +265,22 @@ int main(int argc, char* argv[]) {
                     }
                     else {
                         in.name = str;
-                        int i = 0;
+                        in.flags = 0;
+                        int j;
+                        for(j=0; str[j] != '\0'; j++) {
+                            if(str[j] == '.')
+                                break;
+                        }
+                        if(str[j] == '.') {
+                            str[j] = '\0';
+                            in.flags = str + j + 1;
+                        }
+
                         char found = 0;
-                        for(;i<BOTS_CPU_OPCOUNT;i++){
-                            if(strcmp(mydata[i].name, in.name) == 0){
-                                numargs = bots_cpu_oplist[i].argcount;
-                                address += bots_cpu_oplist[i].size;
+                        for(j=0;j<OPCOUNT;j++){
+                            if(strcmp(ops[j].name, in.name) == 0){
+                                numargs = ops[j].argcount;
+                                address += 4;
                                 found = 1;
                             }
                         }
@@ -284,7 +336,9 @@ int main(int argc, char* argv[]) {
 
     for(i = 0; i<pcount; i++){
         printf("Writing instruction %s...\n", program[i].name);
-        write_inst(out, &program[i]);
+        int ret = write_inst(out, &program[i]);
+        if(ret)
+            return ret;
         free(program[i].name);
         int j = 1;
         for(;j<program[i].argcount;j++){

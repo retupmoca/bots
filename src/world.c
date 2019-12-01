@@ -192,14 +192,8 @@ void _process_tick(bots_world *w) {
         w->cpus[i]->memory[0xffff] = 0;
 
         /** run CPU cycles **/
-        /* we do these "backwords" in order to simulate a 3-stage pipeline */
-        bots_cpu_execute(w->cpus[i]);
-        bots_cpu_decode(w->cpus[i]);
-        bots_cpu_fetch(w->cpus[i]);
-
-        bots_cpu_execute(w->cpus[i]);
-        bots_cpu_decode(w->cpus[i]);
-        bots_cpu_fetch(w->cpus[i]);
+        bots_cpu_cycle(w->cpus[i]);
+        bots_cpu_cycle(w->cpus[i]);
 
         /** read I/O ports from CPU **/
         int8_t throttle = w->cpus[i]->memory[0xffe5];
@@ -225,8 +219,8 @@ void _process_tick(bots_world *w) {
         /* reset */
         if(w->cpus[i]->memory[0xffdb]) {
             w->cpus[i]->fetch_pc = 0;
-            w->cpus[i]->decode_ready = 0;
-            w->cpus[i]->execute_ready = 0;
+            w->cpus[i]->fetch_flag = 0;
+            w->cpus[i]->decode_flag = 0;
         }
 
         /* self destruct */

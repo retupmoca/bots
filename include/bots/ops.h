@@ -5,7 +5,7 @@
 
 #include <bots/struct.h>
 
-#define BOTS_CPU_OPCOUNT 73
+#define BOTS_CPU_OPCOUNT 16
 
 #ifndef DLL_EXPORT
 # ifdef _WIN32
@@ -19,13 +19,15 @@
 # endif
 #endif
 
-typedef struct {
-    uint8_t size;
-    uint8_t argcount;
-    uint8_t arg_sizes[3];
-    void (*execute)(bots_cpu*);
-} bots_cpu_opdata;
+typedef uint8_t (*bots_cpu_op)(
+        bots_cpu* m,
+        uint8_t cycle,
+        uint8_t flags,
+        uint8_t ra,
+        uint8_t rb,
+        uint16_t imm
+);
 
-DLL_EXPORT bots_cpu_opdata bots_cpu_oplist[BOTS_CPU_OPCOUNT];
+DLL_EXPORT bots_cpu_op bots_cpu_oplist[BOTS_CPU_OPCOUNT];
 
 #endif

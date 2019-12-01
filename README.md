@@ -1,124 +1,108 @@
-bots
-====
+# bots
+
 
 I want a modern version of the atrobots programming game, but don't really know what I'm doing.
 
 (http://necrobones.com/atrobots/)
 
-ops
+# ops
 
-arg types
+Memory layout per instruction:
+4 bit opcode
+4 bit opcode flags (immediate vs register argument, shift direction, etc)
+4 bit register a
+4 bit register b
+16 bit immediate (possibly used as another register number)
 
-code | size | name
------|------|-----
-r    |  1   | register
-i    |  2   | immediate value
+number | name | cycles | arg1 | arg2 | arg3
+-------|------|--------|------|------|-----
+0      | nop  | 1
+1      | add  | 1      | r    | r    | r/i
+2      | sub  | 1      | r    | r/i  | r/i
+3      | mul |2| r | r | r/i
+4      | div |2| r | r/i | r/i
+5      | or |1| r | r | r/i
+6      | and |1| r | r | r/i
+7      | xor |1| r | r | r/i
+8      | shift |1| r | r/i | r/i
+9      | not |1| r | r
+10     | push |1| r
+11     | pop |1| r
+12     | store |1| r | r/i | r
+13     | load |1| r | r | r/i
+14     | cmp |1| r | r/i
+15     | jmp |1/2| r | r/i
 
-number | name | arg1 | arg2 | arg3
--------|------|------|------|------
-0|nop
-1 |mov.r | r | r
-2 |mov.i | r | i
-3 |add.rr | r | r | r
-4 |add.ri | r | r | i
-5 |sub.rr | r | r | r
-6 |sub.ri | r | r | i
-7 |sub.ir | r | i | r
-8 |mul.rr | r | r | r
-9 |mul.ri | r | r | i
-10 |div.rr | r | r | r
-11 |div.ri | r | r | i
-12 |div.ir | r | r | i
-13 |mod.rr | r | r | r
-14 |mod.ri | r | r | i
-15 |mod.ir | r | i | r
-16 |neg | r | r
-17 |or.rr | r | r | r
-18 |or.ri | r | r | i
-19 |and.rr | r | r | r
-20 |and.ri | r | r | i
-21 |xor.rr | r | r | r
-22 |xor.ri | r | r | i
-23 |shl.rr | r | r | r
-24 |shl.ri | r | r | i
-25 |shl.ir | r | i | r
-26 |shr.rr | r | r | r
-27 |shr.ri | r | r | i
-28 |shr.ir | r | i | r
-29 |not | r | r
-30 |push.r | r
-31 |push.i | i
-32 |pop | r
-33 |sw.rrr | r | r | r
-34 |sb.rrr | r | r | r
-35 |sw.rir | r | i | r
-36 |sb.rir | r | i | r
-37 |lw.rrr | r | r | r
-38 |lb.rrr | r | r | r
-39 |lw.rri | r | r | i
-40 |lb.rri | r | r | i
-41 |out.rr | r | r
-42 |out.ri | r | i
-43 |out.ir | i | r
-44 |out.ii | i | i
-45 |in.r | r | r
-46 |in.i | r | i
-47 |int.r | r
-48 |int.i | i
-49 |cmp.rr | r | r
-50 |cmp.ri | r | i
-51 |cmp.ir | i | r
-52 |jmp.r | r
-53 |jmp.i | i
-54 |jls.r | r
-55 |jls.i | i
-56 |jgr.r | r
-57 |jgr.i | i
-58 |jne.r | r
-59 |jne.i | i
-60 |jeq.r | r
-61 |jeq.i | i
-62 |jge.r | r
-63 |jge.i | i
-64 |jle.r | r
-65 |jle.i | i
-66 |jz.r | r
-67 |jz.i | i
-68 |jnz.r | r
-69 |jnz.i | i
-70 |call.r | r
-71 |call.i | i
-72 |ret
+## nop
 
-ports
+Does nothing. Takes no arguments.
 
-addr | name
------|------
-0x00 |throttle
-0x02 |hull steering
-0x04 |gun steering
-0x06 |gun hull keepshift
-0x08 |radar steering
-0x0a |radar hull keepshift
-0x0c |radar gun keepshift
-0x0e |radar arc
-0x10 |radar range
-0x12 |radar target range
-0x14 |radar target offset
-0x16 |transponder
-0x18 |hull steering adjust
-0x1a |gun steering adjust
+## add, mul, or, and, xor
 
-ints
+    add r2 r3 r4 ; r2 = r3 <op> r4
+    add r2 r3 5 ; r2 = r3 <op> 5
 
-num | name
-----|-----
-0 |rset
-1 |destruct
-2 |scan
-3 |fire
+## sub
 
-registers
+    sub r2 r3 r4 ; r2 = r3 - r4
+    sub r2 r3 5 ; r2 = r3 - 5
+    sub r2 5 r3 ; r2 = 5 - r3
+
+## div
+
+    div r2 r3 r4 ; r2 = r3 / r4
+    div r2 r3 5 ; r2 = r3 / 5
+    div r2 5 r3 ; r2 = 5 / r3
+    div.% r2 r3 r4 ; r2 = r3 % r4
+    div.% r2 r3 5 ; r2 = r3 % 5
+    div.% r2 5 r3 ; r2 = 5 % r3
+
+## shift
+
+    shift r2 r3 r4 ; r2 = r3 >> r4
+    shift r2 r3 5 ; r2 = r3 >> 5
+    shift r2 5 r3 ; r2 = 5 >> r3
+    shift.< r2 r3 r4 ; r2 = r3 << r4
+    shift.< r2 r3 5 ; r2 = r3 << 5
+    shift.< r2 5 r3 ; r2 = 5 << r3
+
+## not
+
+    not r2 r3 ; r2 = ~r3
+
+## push/pop
+
+    push r2 ; pushes the value in r2 onto stack
+    pop r2 ; pops the value from stack into r2
+
+## store/load
+
+    store r2 r3 r4 ; stores a 2-byte word: mem[r2+r3] = r4
+    store.b r2 r3 r4 ; stores a single byte: mem[r2+r3] = r4
+    store r2 123 r4 ; stores a 2-byte word: mem[r2+123] = r4
+    store.b r2 123 r4 ; stores a single byte: mem[r2+123] = r4
+
+    load r4 r2 r3 ; loads a 2-byte word: r4 = mem[r2+r3]
+    load.b r4 r2 r3 ; loads a single byte: r4 = mem[r2+r3]
+    load r4 r2 123 ; loads a 2-byte word: r4 = mem[r2+123]
+    load.b r4 r2 123 ; loads a single byte: r4 = mem[r2+123]
+
+## cmp
+
+    cmp r2 r3 ; set flags based on r2 and r3
+    cmp r2 5 ; set flags based on r2 and 5
+    cmp 5 r2 ; set flags based on 5 and r2
+
+## jmp
+    
+    jmp r2 123 ; pc = r2+123
+    jmp.< ... ; jump if less than
+    jmp.= ... ; jump if equal
+    jmp.> ... ; jump if greater than
+    jmp.! ... ; jump if not equal
+    jmp.c ... ; call: push pc onto stack before jumping
+
+# registers
 
 reg | for
 ----|----
@@ -132,10 +116,10 @@ reg | for
 7 | general
 8 | general
 9 | general
-10 | stack pointer
+10 | stack pointer (points to maximum user memory on startup, grows down)
 11 | flags
 
-memory map
+# memory map
 
 addr hex | addr dec | size | what
 ---------|----------|------|-----
