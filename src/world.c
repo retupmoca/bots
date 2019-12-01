@@ -5,7 +5,7 @@
 #include <bots/world.h>
 #include <bots/cpu.h>
 
-void _init_events(bots_world *w) {
+static void _init_events(bots_world *w) {
     if(w->_tick_events == NULL) {
         w->_tick_events = malloc(sizeof(bots_events));
         w->_tick_events->events = malloc(sizeof(bots_event));
@@ -15,7 +15,7 @@ void _init_events(bots_world *w) {
     w->_tick_events->event_count = 0;
 }
 
-void _add_event(bots_world *w, uint8_t event_type, uint8_t bot_id) {
+void bots_add_event(bots_world *w, uint8_t event_type, uint8_t bot_id) {
     if(w->_tick_events->event_count == w->_tick_events->_size) {
         w->_tick_events->_size *= 2;
         w->_tick_events->events = realloc(w->_tick_events->events,
@@ -46,13 +46,13 @@ void _physics_tick(bots_world *w) {
 	       && w->tanks[j]->health > 0){
                 /* hit! */
                 hit = 1;
-                _add_event(w, BOTS_EVENT_HIT, j);
+                bots_add_event(w, BOTS_EVENT_HIT, j);
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
                 if(w->tanks[j]->health <= 0) {
                     w->tanks[j]->health = 0;
-                    _add_event(w, BOTS_EVENT_DEATH, j);
+                    bots_add_event(w, BOTS_EVENT_DEATH, j);
                 }
 
                 /* delete the shot */
@@ -84,13 +84,13 @@ void _physics_tick(bots_world *w) {
                && s->y <= w->tanks[j]->y + 40
 	       && w->tanks[j]->health > 0){
                 /* hit! */
-                _add_event(w, BOTS_EVENT_HIT, j);
+                bots_add_event(w, BOTS_EVENT_HIT, j);
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
                 if(w->tanks[j]->health <= 0) {
                     w->tanks[j]->health = 0;
-                    _add_event(w, BOTS_EVENT_DEATH, j);
+                    bots_add_event(w, BOTS_EVENT_DEATH, j);
                 }
 
                 /* delete the shot */
@@ -173,153 +173,18 @@ void _process_tick(bots_world *w) {
             continue;
 
         /** write I/O ports to CPU **/
-        w->cpus[i]->memory[0xffe0] = w->tanks[i]->_req_steering >> 8;
-        w->cpus[i]->memory[0xffe1] = w->tanks[i]->_req_steering & 0xff;
-
-        w->cpus[i]->memory[0xfffb] = w->tanks[i]->_req_turret_steering >> 8;
-        w->cpus[i]->memory[0xfffc] = w->tanks[i]->_req_turret_steering & 0xff;
-
-        w->cpus[i]->memory[0xfff0] = w->tanks[i]->_req_scanner_steering >> 8;
-        w->cpus[i]->memory[0xfff1] = w->tanks[i]->_req_scanner_steering & 0xff;
-
-        /* reset */
-        w->cpus[i]->memory[0xffdb] = 0;
-        /* self destruct */
-        w->cpus[i]->memory[0xffda] = 0;
-        /* scan */
-        w->cpus[i]->memory[0xfff5] = 0;
-        /* fire */
-        w->cpus[i]->memory[0xffff] = 0;
+        for(int j=0; w->tanks[i]->peripherals[j].mem_base != 0; j++)
+            w->tanks[i]->peripherals[j].process_tick(
+                    w->tanks[i]->peripherals + j, w, i, 1);
 
         /** run CPU cycles **/
         bots_cpu_cycle(w->cpus[i]);
         bots_cpu_cycle(w->cpus[i]);
 
         /** read I/O ports from CPU **/
-        int8_t throttle = w->cpus[i]->memory[0xffe5];
-        w->tanks[i]->_req_throttle = throttle;
-
-        uint16_t steering = w->cpus[i]->memory[0xffe0] << 8;
-        steering = steering | w->cpus[i]->memory[0xffe1];
-        steering = steering % 256;
-        w->tanks[i]->_req_steering = steering;
-
-        uint16_t turret_steering = w->cpus[i]->memory[0xfffb] << 8;
-        turret_steering = turret_steering | w->cpus[i]->memory[0xfffc];
-        turret_steering = turret_steering % 256;
-        w->tanks[i]->_req_turret_steering = turret_steering;
-        w->tanks[i]->_req_turret_keepshift = w->cpus[i]->memory[0xfffa];
-
-        uint16_t scanner_steering = w->cpus[i]->memory[0xfff0] << 8;
-        scanner_steering = scanner_steering | w->cpus[i]->memory[0xfff1];
-        scanner_steering = scanner_steering % 256;
-        w->tanks[i]->_req_scanner_steering = scanner_steering;
-        w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->memory[0xffef];
-
-        /* reset */
-        if(w->cpus[i]->memory[0xffdb]) {
-            w->cpus[i]->fetch_pc = 0;
-            w->cpus[i]->fetch_flag = 0;
-            w->cpus[i]->decode_flag = 0;
-        }
-
-        /* self destruct */
-        if(w->cpus[i]->memory[0xffda]) {
-            w->tanks[i]->health = 0;
-            _add_event(w, BOTS_EVENT_DEATH, i);
-        }
-
-        /* scan */
-        if(w->cpus[i]->memory[0xfff5]) {
-            /* get global heading of scanner */
-            uint32_t heading = w->tanks[i]->heading + w->tanks[i]->scanner_offset;
-            
-            /* check angle and range of each bot against scan parameters */
-            int radar_arc = w->cpus[i]->memory[0xfff2];
-            if(radar_arc > 64)
-                radar_arc = 64;
-            int radar_range = w->cpus[i]->memory[0xfff3] << 8;
-            radar_range |= w->cpus[i]->memory[0xfff4];
-            
-            uint8_t radar_left = (heading - radar_arc) % 256;
-            uint8_t radar_right = (heading + radar_arc) % 256;
-            
-            int seen_index = 0;
-            int seen_bots[256];
-            int32_t seen_bot_range[256];
-            int seen_bot_angle[256];
-            
-            int j;
-            for(j=0; j<w->num_tanks; j++){
-                if(j == i)
-                    continue;
-                if(w->tanks[j]->health <= 0)
-                    continue;
-                
-                int32_t x = w->tanks[j]->x - w->tanks[i]->x;
-                int32_t y = w->tanks[j]->y - w->tanks[i]->y;
-                
-                uint8_t angle = (int)(atan2(x, y) * 128 / M_PI) % 256;
-                int32_t range = (int)(sqrt(y * y + x * x));
-                
-                if(   range <= radar_range
-                   && (   (radar_left < radar_right && angle > radar_left && angle < radar_right)
-                       || (radar_left > radar_right && (angle > radar_left || angle < radar_right)))) {
-                    /* we can see bot i */
-                    seen_bot_range[seen_index] = range;
-                    seen_bot_angle[seen_index] = angle;
-                    seen_bots[seen_index++] = j;
-                }
-            }
-            
-            /* load closest seen bot into ports */
-            uint16_t lowest_range = 0;
-            w->cpus[i]->memory[0xffea] = 0;
-            w->cpus[i]->memory[0xffeb] = 0;
-            w->cpus[i]->memory[0xffec] = 0;
-            w->cpus[i]->memory[0xffed] = 0;
-            for(j=0; j < seen_index; j++) {
-                if(seen_bot_range[j] < lowest_range || lowest_range == 0) {
-                    lowest_range = seen_bot_range[j];
-                    w->cpus[i]->memory[0xffec] = lowest_range >> 8;
-                    w->cpus[i]->memory[0xffed] = lowest_range & 0xff;
-                    
-                    /* TODO: give some kind of scanner offset instead of bearing */
-                    w->cpus[i]->memory[0xffea] = seen_bot_angle[j] >> 8;
-                    w->cpus[i]->memory[0xffeb] = seen_bot_angle[j] & 0xff;
-                }
-            }
-            _add_event(w, BOTS_EVENT_SCAN, i);
-        }
-
-        /* fire */
-        if(w->cpus[i]->memory[0xffff]) {
-            bots_shot* s = malloc(sizeof(bots_shot));
-            
-            /* get global heading of gun */
-            s->heading = w->tanks[i]->heading + w->tanks[i]->turret_offset;
-            
-            /* move just far enough that we don't hit ourselves */
-            s->x = w->tanks[i]->x;
-            s->y = w->tanks[i]->y;
-                
-            double rangle = s->heading * M_PI / 128;
-            int dist = 60;
-            int dy = floor(0.5 + (dist * cos(rangle)));
-            int dx = floor(0.5 + (dist * sin(rangle)));
-            s->x += dx;
-            s->y += dy;
-
-            s->bot_id = i;
-            s->id = w->next_shot_id++;
-            
-            /* add shot to world */
-            int i = 0;
-            for(; w->shots[i]; i++)
-                ;
-            w->shots[i] = s;
-            _add_event(w, BOTS_EVENT_FIRE, i);
-        }
+        for(int j=0; w->tanks[i]->peripherals[j].mem_base != 0; j++)
+            w->tanks[i]->peripherals[j].process_tick(
+                    w->tanks[i]->peripherals + j, w, i, 0);
     }
 }
 
@@ -336,7 +201,6 @@ void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {
     if(w->num_tanks == 16){
         return;
     }
-    m->world = w;
     m->bot_id = w->num_tanks;
     w->cpus[w->num_tanks] = m;
     w->tanks[w->num_tanks] = p;

@@ -1,20 +1,20 @@
 ; throttle 100
 add r2 r0 100
-store.b r0 65509 r2
+store.b r0 65216 r2
 
 ; scan arc 16
 add r2 r0 16
-store.b r0 65522 r2
+store.b r0 65253 r2
 
 ; scan range 50
 add r2 r0 50
-store r0 65523 r2
+store r0 65254 r2
 
 add r2 r0 16
 !mainloop
-store r0 65504 r2 ; steer hull
-store r0 65531 r2 ; steer turret
-store.b r0  65535 r1 ; fire
+store r0 65217 r2 ; steer hull
+store r0 65234 r2 ; steer turret
+store.b r0 65232 r1 ; fire
 
 ; stay straight for a while
 add r3 r0 0

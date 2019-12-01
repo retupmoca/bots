@@ -123,28 +123,21 @@ reg | for
 
 addr hex | addr dec | size | what
 ---------|----------|------|-----
-0xffff | 65535 | b | turret: fire
-0xfffd | 65533 | w | turret: reserved
-0xfffb | 65531 | w | turret: steering
-0xfffa | 65530 | b | turret: keepshift
-0xfff8 | 65528 | w | reserved
-0xfff6 | 65526 | w | reserved
-0xfff5 | 65525 | b | radar: scan
-0xfff3 | 65523 | w | radar: range
-0xfff2 | 65522 | b | radar: arc
-0xfff0 | 65520 | w | radar: steering
-0xffef | 65519 | b | radar: keepshift
-0xffee | 65518 | b | radar: reserved
-0xffec | 65516 | w | radar result: range
-0xffea | 65514 | w | radar result: offset
-0xffe8 | 65512 | w | reserved
-0xffe6 | 65510 | w | reserved
-0xffe5 | 65509 | b | nav: throttle
-0xffe4 | 65508 | b | nav: reserved
-0xffe2 | 65506 | w | nav: reserved
-0xffe0 | 65504 | w | nav: steering
-0xffde | 65502 | w | reserved
-0xffdc | 65500 | w | reserved
-0xffdb | 65499 | b | trigger reset
-0xffda | 65498 | b | trigger self destruct
+0xfef0 | 65264 | b | trigger reset
+|||
+0xfee9 | 65257 | w | radar: steering
+0xfee8 | 65256 | b | radar: scan
+0xfee6 | 65254 | w | radar: range
+0xfee5 | 65253 | b | radar: arc
+0xfee4 | 65252 | b | radar: keepshift
+0xfee2 | 65250 | w | radar: result range
+0xfee0 | 65248 | w | radar: result offset
+|||
+0xfed2 | 65234 | w | turret: steering
+0xfed1 | 65233 | b | turret: keepshift
+0xfed0 | 65232 | b | turret: fire
+|||
+0xfec1 | 65217 | w | hull: steering
+0xfec0 | 65216 | b | hull: throttle
+|||
 0xefff | 61439 | - | limit of program space

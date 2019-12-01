@@ -4,6 +4,7 @@
 
 #include <bots/bots.h>
 #include <bots/world.h>
+#include <bots/peripherals.h>
 
 bots_world* bots_create_world() {
     bots_world* g = (bots_world*)calloc(1, sizeof(bots_world));
@@ -54,6 +55,16 @@ char bots_add_bot(bots_world* g, char* memory, int size) {
     cpu->user_mem_max = 0xefff;
     cpu->registers[10] = 0xefff;
     memcpy(cpu->memory, memory, size);
+
+    tank->peripherals = calloc(5, sizeof(bots_peripheral));
+    tank->peripherals[0].mem_base = 0xfef0;
+    tank->peripherals[0].process_tick = &bots_peripheral_reset;
+    tank->peripherals[1].mem_base = 0xfee0;
+    tank->peripherals[1].process_tick = &bots_peripheral_radar;
+    tank->peripherals[2].mem_base = 0xfed0;
+    tank->peripherals[2].process_tick = &bots_peripheral_turret;
+    tank->peripherals[3].mem_base = 0xfec0;
+    tank->peripherals[3].process_tick = &bots_peripheral_hull;
 
     bots_world_add_bot(g, cpu, tank);
 

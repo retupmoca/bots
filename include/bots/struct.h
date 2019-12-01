@@ -26,9 +26,17 @@ typedef struct {
 
     uint8_t execute_cycle;
 
-    bots_world* world;
     uint8_t bot_id;
 } bots_cpu;
+
+typedef struct _bots_peripheral bots_peripheral;
+struct _bots_peripheral {
+    uint16_t mem_base;
+
+    void *_data;
+
+    void (*process_tick)(bots_peripheral *p, bots_world *w, uint8_t bot_id, uint8_t pre);
+};
 
 typedef struct {
     int32_t x;
@@ -40,6 +48,8 @@ typedef struct {
     uint32_t scanner_offset;
 
     uint8_t health;
+
+    bots_peripheral *peripherals;
 
     uint16_t _req_steering;
     int16_t _req_throttle;

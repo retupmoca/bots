@@ -13,7 +13,7 @@ src/main.obj: src/main.c
     cl /Iinclude /Fosrc/main.obj /c src/main.c
 
 bin/bots.dll: src/ops.obj src/cpu.obj src/world.obj src/bots.obj
-    cl /Iinclude /LD /o bin/bots.dll src/ops.obj src/cpu.obj src/world.obj src/bots.obj
+    cl /Iinclude /LD /o bin/bots.dll src/ops.obj src/cpu.obj src/world.obj src/bots.obj src/peripherals.obj
 
 src/bots.obj: src/bots.c
     cl /Iinclude /Fosrc/bots.obj /c /DBOTS_BUILD_SHARED src/bots.c
@@ -26,6 +26,9 @@ src/cpu.obj: src/cpu.c
 
 src/world.obj: src/world.c
     cl /Iinclude /Fosrc/world.obj /c /DBOTS_BUILD_SHARED src/world.c
+
+src/peripherals.obj: src/peripherals.c
+    cl /Iinclude /Fosrc/peripherals.obj /c /DBOTS_BUILD_SHARED src/peripherals.c
 
 clean:
     del bin/*exe src/*obj bin/*dll bin/*lib bin/*exp
