@@ -257,23 +257,33 @@ uint8_t bots_op_jmp(bots_cpu *m, uint8_t cycle, uint8_t flags,
 
     uint8_t jump = 1;
 
-    /* if zero */
-    if(flags & 0x40 && m->registers[11] & 0x1000)
+    /* if zero opflag and not 0 cmpflag, don't jump */
+    if(flags & 0x40 && !(m->registers[11] & 0x1000))
         jump = 0;
     /* if not zero */
-    if(flags & 0x20 && !(m->registers[11] & 0x1000))
+    else if(flags & 0x20 && m->registers[11] & 0x1000)
         jump = 0;
     /* if less */
-    if(flags & 0x10 && m->registers[11] & 0x8000)
-        jump = 0;
+    else if(flags & 0x10) {
+        if (flags & 0x08 && !(m->registers[11] & 0x2000
+                              || m->registers[11] & 0x8000))
+            jump = 0;
+        if(!(flags & 0x08) && !(m->registers[11] & 0x8000))
+            jump = 0;
+    }
+    /* if greater */
+    else if(flags & 0x02) {
+        if(flags & 0x08 && !(m->registers[11] & 0x4000
+                             || m->registers[11] & 0x2000))
+            jump = 0;
+        if(!(flags & 0x08) && !(m->registers[11] & 0x4000))
+            jump = 0;
+    }
     /* if equal */
-    if(flags & 0x08 && m->registers[11] & 0x2000)
+    else if(flags & 0x08 && !(m->registers[11] & 0x2000))
         jump = 0;
     /* if not equal */
-    if(flags & 0x04 && !(m->registers[11] & 0x2000))
-        jump = 0;
-    /* if greater */
-    if(flags & 0x02 && m->registers[11] & 0x4000)
+    else if(flags & 0x04 && m->registers[11] & 0x2000)
         jump = 0;
 
     if(jump && !cycle && flags & 0x01) { /* if this is the first cycle of a call */

@@ -33,6 +33,8 @@ int main(int argc, char *argv[]) {
     g->tanks[0]->x = 50;
     g->tanks[0]->y = 50;
 
+    g->c_cpus_per_tick = 1;
+
     while(1) {
         bots_tick(g);
         printf("Bot 1 heading: %i\n", g->tanks[0]->heading);
