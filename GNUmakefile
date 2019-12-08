@@ -1,5 +1,7 @@
-PREFIX = /usr/local
 CFLAGS = -g -fPIC -Iinclude
+PREFIX = /usr/local
+DESTDIR = ${PREFIX}
+DESTLIBDIR = ${DESTDIR}/lib
 
 all : bin/bots bin/bots_asm lib/libbots.so
 
@@ -13,9 +15,9 @@ lib/libbots.so : src/ops.o src/cpu.o src/world.o src/bots.o
 	gcc -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/bots.o -lm
 
 install :
-	cp bin/* ${PREFIX}/bin
-	cp lib/* ${PREFIX}/lib
-	cp -r include/* ${PREFIX}/include
+	cp bin/* ${DESTDIR}/bin
+	cp lib/* ${DESTLIBDIR}
+	cp -r include/* ${DESTDIR}/include
 
 clean :
 	rm -f src/*o bin/bots bin/bots_asm lib/*so
