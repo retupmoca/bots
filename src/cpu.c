@@ -1,50 +1,69 @@
 #include <bots/cpu.h>
 #include <bots/ops.h>
 
-void bots_cpu_execute(bots_cpu* m) {
-    if(!m->execute_ready)
-        return;
-    (*bots_cpu_oplist[m->op].execute)(m);
-}
-
-void bots_cpu_decode(bots_cpu* m) {
-    char i;
-    if(!m->decode_ready)
-        return;
-    
-    m->op = m->decode_bytes[0];
-    uint8_t pos = 1;
-    for(i = 0; i < bots_cpu_oplist[m->op].argcount; i++){
-        uint8_t argsize = bots_cpu_oplist[m->op].arg_sizes[i];
-        m->args[i] = 0;
-        uint8_t j = 0;
-        for(; j < argsize; j++){
-            m->args[i] <<= 8;
-            m->args[i] |= m->decode_bytes[pos++];
-        }
-    }
-
-    m->execute_ready = 1;
-    m->pc = m->decode_pc;
-}
-
-void bots_cpu_fetch(bots_cpu* m) {
-    if(m->fetch_pc > m->mem_max) {
+static void fetch(bots_cpu *m) {
+    if(m->fetch_pc > m->user_mem_max - 3)
         m->fetch_pc = 0;
-    }
-    char op = m->memory[m->fetch_pc];
-    char i;
-    for(i=0; i < bots_cpu_oplist[op].size; i++){
-        if(m->fetch_pc + i <= m->mem_max){
-            m->decode_bytes[i] = m->memory[m->fetch_pc + i];
-        }
-    }
-    m->decode_pc = m->fetch_pc;
-    m->decode_ready = 1;
-    m->fetch_pc += bots_cpu_oplist[op].size;
 
-    if(op == 51 || op == 69) { /* hard jump / call - follow it for prefetching */
-        m->fetch_pc = m->decode_bytes[1] << 8;
-        m->fetch_pc |= m->decode_bytes[2];
+    if(m->fetch_flag == 0) {
+        m->fetch_flag = 1;
+
+        m->fetched_pc = m->fetch_pc;
+        m->fetched_instruction  = m->memory[(m->fetch_pc)++] << 24;
+        m->fetched_instruction |= m->memory[(m->fetch_pc)++] << 16;
+        m->fetched_instruction |= m->memory[(m->fetch_pc)++] << 8;
+        m->fetched_instruction |= m->memory[(m->fetch_pc)++];
     }
+}
+
+static void decode(bots_cpu *m) {
+    if(m->fetch_flag == 0)
+        return;
+
+    if(m->decode_flag == 0) {
+        m->decode_flag = 1;
+        m->fetch_flag = 0;
+        m->decoded_pc = m->fetched_pc;
+        m->decoded_opcode = (m->fetched_instruction >> 28) & 0x0f;
+        m->decoded_flags = (m->fetched_instruction >> 24) & 0x0f;
+        m->decoded_ra = (m->fetched_instruction >> 20) & 0x0f;
+        m->decoded_rb = (m->fetched_instruction >> 16) & 0x0f;
+        m->decoded_imm = m->fetched_instruction & 0xffff;
+
+        /* sanity check register numbers */
+        if(m->decoded_ra > 11) m->decoded_ra = 0;
+        if(m->decoded_rb > 11) m->decoded_rb = 0;
+         /* if the instruction uses immediate as register value, check it */
+        if(m->decoded_flags & 0x08)
+            if(m->decoded_imm > 11)
+                m->decoded_imm = 0;
+    }
+}
+
+static void execute(bots_cpu *m) {
+    if(m->decode_flag == 0)
+        return;
+
+    m->registers[0] = 0;
+    m->registers[1] = 1;
+ 
+    uint8_t done = (*bots_cpu_oplist[m->decoded_opcode])(
+            m,
+            m->execute_cycle++,
+            m->decoded_flags,
+            m->decoded_ra,
+            m->decoded_rb,
+            m->decoded_imm
+    );
+
+    if(done) {
+        m->decode_flag = 0;
+        m->execute_cycle = 0;
+    }
+}
+
+void bots_cpu_cycle(bots_cpu *m) {
+    execute(m);
+    decode(m);
+    fetch(m);
 }

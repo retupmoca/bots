@@ -5,10 +5,34 @@
 #include <bots/world.h>
 #include <bots/cpu.h>
 
-void bots_world_tick(bots_world* w){
+static void _init_events(bots_world *w) {
+    if(w->_tick_events == NULL) {
+        w->_tick_events = malloc(sizeof(bots_events));
+        w->_tick_events->events = malloc(sizeof(bots_event));
+        w->_tick_events->_size = 1;
+    }
+
+    w->_tick_events->event_count = 0;
+}
+
+void bots_add_event(bots_world *w, uint8_t event_type, uint8_t bot_id) {
+    if(w->_tick_events->event_count == w->_tick_events->_size) {
+        w->_tick_events->_size *= 2;
+        w->_tick_events->events = realloc(w->_tick_events->events,
+                                          sizeof(bots_event)
+                                           * w->_tick_events->_size);
+    }
+    bots_event *event = w->_tick_events->events
+                        + (w->_tick_events->event_count)++;
+
+    event->event_type = event_type;
+    event->bot_id = bot_id;
+}
+
+void _physics_tick(bots_world *w) {
+    /** run world physics **/
     int i = 0;
     bots_shot* s = 0;
-    /* physics */
     /* shots */
     for(s=w->shots[0], i=0; s; s=w->shots[++i]) {
         /* check collision */
@@ -22,11 +46,14 @@ void bots_world_tick(bots_world* w){
 	       && w->tanks[j]->health > 0){
                 /* hit! */
                 hit = 1;
+                bots_add_event(w, BOTS_EVENT_HIT, j);
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
-                if(w->tanks[j]->health < 0)
+                if(w->tanks[j]->health <= 0) {
                     w->tanks[j]->health = 0;
+                    bots_add_event(w, BOTS_EVENT_DEATH, j);
+                }
 
                 /* delete the shot */
                 free(s);
@@ -57,11 +84,14 @@ void bots_world_tick(bots_world* w){
                && s->y <= w->tanks[j]->y + 40
 	       && w->tanks[j]->health > 0){
                 /* hit! */
+                bots_add_event(w, BOTS_EVENT_HIT, j);
 
                 /* record damage */
                 w->tanks[j]->health -= 10;
-                if(w->tanks[j]->health < 0)
+                if(w->tanks[j]->health <= 0) {
                     w->tanks[j]->health = 0;
+                    bots_add_event(w, BOTS_EVENT_DEATH, j);
+                }
 
                 /* delete the shot */
                 free(s);
@@ -78,7 +108,6 @@ void bots_world_tick(bots_world* w){
         if(w->tanks[i]->health <= 0)
             continue;
         /* turn, etc */
-        uint16_t throttle;
         short real_steering;
         short real_turret_steering;
         uint16_t steering;
@@ -86,19 +115,7 @@ void bots_world_tick(bots_world* w){
         uint16_t scanner_steering;
         uint16_t steering_adjust;
 
-        throttle = w->cpus[i]->ports[0] << 8;
-        throttle = throttle | w->cpus[i]->ports[1];
-
-        steering = w->cpus[i]->ports[2] << 8;
-        steering = steering | w->cpus[i]->ports[3];
-        steering = steering % 256;
-
-        steering_adjust = w->cpus[i]->ports[24] << 8;
-        steering_adjust |= w->cpus[i]->ports[25];
-        steering += steering_adjust;
-        steering = steering % 256;
-        w->cpus[i]->ports[24] = 0;
-        w->cpus[i]->ports[25] = 0;
+        steering = w->tanks[i]->_req_steering;
 
         real_steering = steering;
         if(real_steering <= 128 && real_steering > 1){
@@ -107,12 +124,10 @@ void bots_world_tick(bots_world* w){
         if(real_steering > 128 && real_steering < 255){
             real_steering = 255;
         }
-        steering -= real_steering;
-        w->cpus[i]->ports[2] = steering >> 8;
-        w->cpus[i]->ports[3] = steering & 0xff;
+        w->tanks[i]->_req_steering -= real_steering;
 
         w->tanks[i]->heading = (w->tanks[i]->heading + real_steering) % 256;
-        w->tanks[i]->speed = throttle;
+        w->tanks[i]->speed = w->tanks[i]->_req_throttle;
         if(w->tanks[i]->speed > 100)
             w->tanks[i]->speed = 100;
 
@@ -125,18 +140,10 @@ void bots_world_tick(bots_world* w){
         w->tanks[i]->y += dy;
 
         /* turn turret */
-        turret_steering = w->cpus[i]->ports[4] << 8;
-        turret_steering = turret_steering | w->cpus[i]->ports[5];
-        if(w->cpus[i]->ports[7]) /* turret keepshift */
+        turret_steering = w->tanks[i]->_req_turret_steering;
+        if(w->tanks[i]->_req_turret_keepshift) /* turret keepshift */
             turret_steering = (turret_steering + 256 - real_steering) % 256;
         turret_steering = turret_steering % 256;
-
-        steering_adjust = w->cpus[i]->ports[26] << 8;
-        steering_adjust |= w->cpus[i]->ports[27];
-        turret_steering += steering_adjust;
-        turret_steering = turret_steering % 256;
-        w->cpus[i]->ports[26] = 0;
-        w->cpus[i]->ports[27] = 0;
 
         real_turret_steering = turret_steering;
         if(real_turret_steering <= 128 && real_turret_steering > 2){
@@ -145,55 +152,56 @@ void bots_world_tick(bots_world* w){
         if(real_turret_steering > 128 && real_turret_steering < 254){
             real_turret_steering = 254;
         }
-        turret_steering -= real_turret_steering;
-        w->cpus[i]->ports[4] = turret_steering >> 8;
-        w->cpus[i]->ports[5] = turret_steering & 0xff;
+        w->tanks[i]->_req_turret_steering -= real_turret_steering;
 
         w->tanks[i]->turret_offset = (w->tanks[i]->turret_offset + real_turret_steering) % 256;
 
         /* turn scanner */
-        scanner_steering = w->cpus[i]->ports[8] << 8;
-        scanner_steering = scanner_steering | w->cpus[i]->ports[9];
-
-        if(w->cpus[i]->ports[0x0b]) /* scanner hull keepshift */
+        scanner_steering = w->tanks[i]->_req_scanner_steering;
+        if(w->tanks[i]->_req_scanner_keepshift) /* scanner keepshift */
             scanner_steering = (scanner_steering + 256 - real_steering) % 256;
 
-        if(w->cpus[i]->ports[0x0d]) /* scanner gun keepshift */
-            scanner_steering = (scanner_steering + 256 - real_turret_steering) % 256;
-
-        /* if we're keepshifting on the gun, but not the hull, we need to undo the
-         * turret steering caused by its own keepshift
-         */
-        if(w->cpus[i]->ports[0x0d] && w->cpus[i]->ports[7] && !w->cpus[i]->ports[0x0b])
-            scanner_steering = (scanner_steering + real_steering) % 256;
-
         w->tanks[i]->scanner_offset = (w->tanks[i]->scanner_offset + scanner_steering) % 256;
-        w->cpus[i]->ports[8] = 0;
-        w->cpus[i]->ports[9] = 0;
+        w->tanks[i]->_req_scanner_steering = 0;
     }
+}
 
-    /* execute */
+void _process_tick(bots_world *w) {
+    int i;
     for(i=0; i < w->num_tanks; i++){
         if(w->tanks[i]->health <= 0)
             continue;
-        /* we do these "backwords" in order to simulate a 3-stage pipeline */
-        bots_cpu_execute(w->cpus[i]);
-        bots_cpu_decode(w->cpus[i]);
-        bots_cpu_fetch(w->cpus[i]);
 
-        bots_cpu_execute(w->cpus[i]);
-        bots_cpu_decode(w->cpus[i]);
-        bots_cpu_fetch(w->cpus[i]);
+        /** write I/O ports to CPU **/
+        for(int j=0; w->tanks[i]->peripherals[j].mem_base != 0; j++)
+            w->tanks[i]->peripherals[j].process_tick(
+                    w->tanks[i]->peripherals + j, w, i, 1);
+
+        /** run CPU cycles **/
+        for(int j=0; j<w->c_cpus_per_tick; j++)
+            bots_cpu_cycle(w->cpus[i]);
+
+        /** read I/O ports from CPU **/
+        for(int j=0; w->tanks[i]->peripherals[j].mem_base != 0; j++)
+            w->tanks[i]->peripherals[j].process_tick(
+                    w->tanks[i]->peripherals + j, w, i, 0);
     }
+}
+
+bots_events* bots_world_tick(bots_world* w){
+    _init_events(w);
+
+    _physics_tick(w);
+    _process_tick(w);
+
+    return w->_tick_events;
 }
 
 void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {
     if(w->num_tanks == 16){
         return;
     }
-    m->world = w;
     m->bot_id = w->num_tanks;
-    m->ports[0x17] = m->bot_id;
     w->cpus[w->num_tanks] = m;
     w->tanks[w->num_tanks] = p;
     w->num_tanks++;
