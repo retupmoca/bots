@@ -17,8 +17,11 @@ lib/libbots.so : src/ops.o src/cpu.o src/world.o src/bots.o
 	gcc -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/bots.o -lm
 
 install :
+	mkdir -p ${DESTDIR}/${PREFIX}/bin
 	cp bin/* ${DESTDIR}/${PREFIX}/bin
+	mkdir -p ${DESTDIR}/${PREFIX}/${LIBDIR}
 	cp lib/* ${DESTDIR}/${PREFIX}/${LIBDIR}
+	mkdir -p ${DESTDIR}/${PREFIX}/include
 	cp -r include/* ${DESTDIR}/${PREFIX}/include
 
 clean :
