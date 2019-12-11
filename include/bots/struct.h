@@ -87,11 +87,15 @@ typedef struct {
     int _size;
 } bots_events;
 
+#define BOTS_MAX_COUNT 16
+/* we've got the memory... */
+#define BOTS_SHOTS_MAX_COUNT (16*1024)
+
 struct _bots_world {
     uint8_t num_tanks;
-    bots_cpu* cpus[16];
-    bots_tank* tanks[16];
-    bots_shot* shots[16*1024]; /* we've got the memory... */
+    bots_cpu* cpus[BOTS_MAX_COUNT];
+    bots_tank* tanks[BOTS_MAX_COUNT];
+    bots_shot* shots[BOTS_SHOTS_MAX_COUNT];
     long long next_shot_id;
 
     uint8_t c_cpus_per_tick;

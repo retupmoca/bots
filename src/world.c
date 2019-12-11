@@ -198,7 +198,7 @@ bots_events* bots_world_tick(bots_world* w){
 }
 
 void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {
-    if(w->num_tanks == 16){
+    if(w->num_tanks == BOTS_MAX_COUNT){
         return;
     }
     m->bot_id = w->num_tanks;

@@ -1,9 +1,14 @@
 # bots
 
-
 I want a modern version of the atrobots programming game, but don't really know what I'm doing.
 
 (http://necrobones.com/atrobots/)
+
+# units
+
+Consider one "distance unit" to be one mm
+
+Consider one "world tick" to be 1/60th of a second(?)
 
 # ops
 
