@@ -73,8 +73,21 @@ void _physics_tick(bots_world *w) {
         int dist = 20;
         int dy = floor(0.5 + (dist * cos(rangle)));
         int dx = floor(0.5 + (dist * sin(rangle)));
+        int32_t start_x = s->x;
+        int32_t start_y = s->y;
         s->x += dx;
         s->y += dy;
+        if(abs(start_x - s->x) > dx * 2 || abs(start_y - s->y) > dy * 2) {
+            /* we moved a long way...assume we wrapped around the edge */
+            /* delete shot */
+            free(s);
+            int k;
+            for(k=i; w->shots[k]; k++){
+                w->shots[k] = w->shots[k+1];
+            }
+            i--;
+            continue;
+        }
 
         /* check collision again */
         for(j=0; j < w->num_tanks; j++){
