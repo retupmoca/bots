@@ -99,6 +99,7 @@ struct _bots_world {
     long long next_shot_id;
 
     uint8_t c_cpus_per_tick;
+    int32_t c_spawn_distance;
     
     bots_events* _tick_events;
 };

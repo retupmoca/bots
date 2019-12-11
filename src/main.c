@@ -24,14 +24,7 @@ int main(int argc, char *argv[]) {
         printf("Please provide two robots\n");
     }
 
-    /* hack the bots into position
-     * 
-     * We only do this because bots_add_bot doesn't position the bots at all
-     * right now. In the future, it'll position them with some standard
-     * algorithm.
-     */
-    g->tanks[0]->x = 50;
-    g->tanks[0]->y = 50;
+    bots_spawn(g);
 
     g->c_cpus_per_tick = 1;
 

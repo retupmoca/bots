@@ -219,3 +219,21 @@ void bots_world_add_bot(bots_world* w, bots_cpu* m, bots_tank* p) {
     w->tanks[w->num_tanks] = p;
     w->num_tanks++;
 }
+
+void bots_world_place_bots(bots_world *w) {
+    int32_t spawn_d = w->c_spawn_distance;
+
+    double angle = 0;
+    double step = (2 * M_PI) / w->num_tanks;
+
+    for(int i=0; i<w->num_tanks; i++) {
+        /* set bot to location */
+        int32_t loc_x = floor(0.5 + (spawn_d * cos(angle)));
+        int32_t loc_y = floor(0.5 + (spawn_d * sin(angle)));
+        w->tanks[i]->x = loc_x;
+        w->tanks[i]->y = loc_y;
+
+        /* rotate location to next spawn location */
+        angle += step;
+    }
+}

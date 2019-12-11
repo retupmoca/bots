@@ -10,6 +10,7 @@ bots_world* bots_create_world() {
     bots_world* g = (bots_world*)calloc(1, sizeof(bots_world));
 
     g->c_cpus_per_tick = 2;
+    g->c_spawn_distance = 100;
 
     return g;
 }
@@ -71,6 +72,10 @@ char bots_add_bot(bots_world* g, char* memory, int size) {
     bots_world_add_bot(g, cpu, tank);
 
     return 1;
+}
+
+void bots_spawn(bots_world *g) {
+    bots_world_place_bots(g);
 }
 
 bots_events* bots_tick(bots_world* g) {
