@@ -21,11 +21,15 @@ void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t
     uint16_t range = arc + 1;
     uint16_t scan = range + 2;
     uint16_t steering = scan + 1;
+    uint16_t target_offset = steering + 2;
 
     if(pre) {
         /* load updated steering offset into io ports */
         w->cpus[i]->memory[steering] = w->tanks[i]->_req_scanner_steering >> 8;
         w->cpus[i]->memory[steering + 1] = w->tanks[i]->_req_scanner_steering & 0xff;
+        uint16_t s_target_offset = (w->tanks[i]->scanner_offset + w->tanks[i]->_req_scanner_steering) % 1024;
+        w->cpus[i]->memory[target_offset] = s_target_offset >> 8;
+        w->cpus[i]->memory[target_offset + 1] = s_target_offset & 0xff;
 
         /* done scanning */
         w->cpus[i]->memory[scan] = 0;
@@ -33,11 +37,18 @@ void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t
     }
 
     /* request scanner steering */
+    w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->memory[keepshift];
     uint16_t scanner_steering = w->cpus[i]->memory[steering] << 8;
     scanner_steering = scanner_steering | w->cpus[i]->memory[steering+1];
     scanner_steering = scanner_steering % 1024;
+    if(scanner_steering == w->tanks[i]->_req_scanner_steering) {
+        /* user didn't change steering directly; try the target_offset */
+        uint16_t s_target_offset = w->cpus[i]->memory[target_offset] << 8;
+        s_target_offset |= w->cpus[i]->memory[target_offset + 1];
+
+        scanner_steering = (s_target_offset - w->tanks[i]->scanner_offset) % 1024;
+    }
     w->tanks[i]->_req_scanner_steering = scanner_steering;
-    w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->memory[keepshift];
 
     /* do scan */
     if(w->cpus[i]->memory[scan]) {
