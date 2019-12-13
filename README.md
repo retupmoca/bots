@@ -130,6 +130,7 @@ addr hex | addr dec | size | what
 ---------|----------|------|-----
 0xfef0 | 65264 | b | trigger reset
 |||
+0xfeeb | 65259 | w | radar: target offset
 0xfee9 | 65257 | w | radar: steering
 0xfee8 | 65256 | b | radar: scan
 0xfee6 | 65254 | w | radar: range
