@@ -132,11 +132,11 @@ void _physics_tick(bots_world *w) {
         steering = w->tanks[i]->_req_steering;
 
         real_steering = steering;
-        if(real_steering <= 128 && real_steering > 1){
-            real_steering = 1;
+        if(real_steering <= 128 && real_steering > w->c_hull_turn_rate){
+            real_steering = w->c_hull_turn_rate;
         }
-        if(real_steering > 128 && real_steering < 255){
-            real_steering = 255;
+        if(real_steering > 128 && real_steering < (256 - w->c_hull_turn_rate)){
+            real_steering = 256 - w->c_hull_turn_rate;
         }
         w->tanks[i]->_req_steering -= real_steering;
 
@@ -160,11 +160,11 @@ void _physics_tick(bots_world *w) {
         turret_steering = turret_steering % 256;
 
         real_turret_steering = turret_steering;
-        if(real_turret_steering <= 128 && real_turret_steering > 2){
-            real_turret_steering = 2;
+        if(real_turret_steering <= 128 && real_turret_steering > w->c_turret_turn_rate){
+            real_turret_steering = w->c_turret_turn_rate;
         }
-        if(real_turret_steering > 128 && real_turret_steering < 254){
-            real_turret_steering = 254;
+        if(real_turret_steering > 128 && real_turret_steering < (256 - w->c_turret_turn_rate)){
+            real_turret_steering = 256 - w->c_turret_turn_rate;
         }
         w->tanks[i]->_req_turret_steering -= real_turret_steering;
 
@@ -177,11 +177,11 @@ void _physics_tick(bots_world *w) {
         scanner_steering = scanner_steering % 256;
 
         real_scanner_steering = scanner_steering;
-        if(real_scanner_steering <= 128 && real_scanner_steering > 8) {
-            real_scanner_steering = 8;
+        if(real_scanner_steering <= 128 && real_scanner_steering > w->c_scanner_turn_rate) {
+            real_scanner_steering = w->c_scanner_turn_rate;
         }
-        if(real_scanner_steering > 128 && real_scanner_steering < 248) {
-            real_scanner_steering = 248;
+        if(real_scanner_steering > 128 && real_scanner_steering < (256 - w->c_scanner_turn_rate)) {
+            real_scanner_steering = 256 - w->c_scanner_turn_rate;
         }
         w->tanks[i]->_req_scanner_steering -= real_scanner_steering;
 

@@ -12,6 +12,10 @@ bots_world* bots_create_world() {
     g->c_cpus_per_tick = 2;
     g->c_spawn_distance = 100;
 
+    g->c_hull_turn_rate = 1;
+    g->c_turret_turn_rate = 2;
+    g->c_scanner_turn_rate = 8;
+
     return g;
 }
 

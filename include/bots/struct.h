@@ -100,6 +100,10 @@ struct _bots_world {
 
     uint8_t c_cpus_per_tick;
     int32_t c_spawn_distance;
+
+    uint16_t c_hull_turn_rate;
+    uint16_t c_turret_turn_rate;
+    uint16_t c_scanner_turn_rate;
     
     bots_events* _tick_events;
 };
