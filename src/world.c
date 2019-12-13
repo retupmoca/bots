@@ -123,6 +123,7 @@ void _physics_tick(bots_world *w) {
         /* turn, etc */
         short real_steering;
         short real_turret_steering;
+        short real_scanner_steering;
         uint16_t steering;
         uint16_t turret_steering;
         uint16_t scanner_steering;
@@ -173,9 +174,18 @@ void _physics_tick(bots_world *w) {
         scanner_steering = w->tanks[i]->_req_scanner_steering;
         if(w->tanks[i]->_req_scanner_keepshift) /* scanner keepshift */
             scanner_steering = (scanner_steering + 256 - real_steering) % 256;
+        scanner_steering = scanner_steering % 256;
 
-        w->tanks[i]->scanner_offset = (w->tanks[i]->scanner_offset + scanner_steering) % 256;
-        w->tanks[i]->_req_scanner_steering = 0;
+        real_scanner_steering = scanner_steering;
+        if(real_scanner_steering <= 128 && real_scanner_steering > 8) {
+            real_scanner_steering = 8;
+        }
+        if(real_scanner_steering > 128 && real_scanner_steering < 248) {
+            real_scanner_steering = 248;
+        }
+        w->tanks[i]->_req_scanner_steering -= real_scanner_steering;
+
+        w->tanks[i]->scanner_offset = (w->tanks[i]->scanner_offset + real_scanner_steering) % 256;
     }
 }
 
