@@ -69,7 +69,7 @@ void _physics_tick(bots_world *w) {
             continue;
 
         /* move the shots */
-        double rangle = (s->heading) * M_PI / 128;
+        double rangle = (s->heading) * M_PI / 512;
         int dist = 20;
         int dy = floor(0.5 + (dist * cos(rangle)));
         int dx = floor(0.5 + (dist * sin(rangle)));
@@ -132,21 +132,21 @@ void _physics_tick(bots_world *w) {
         steering = w->tanks[i]->_req_steering;
 
         real_steering = steering;
-        if(real_steering <= 128 && real_steering > w->c_hull_turn_rate){
+        if(real_steering <= 512 && real_steering > w->c_hull_turn_rate){
             real_steering = w->c_hull_turn_rate;
         }
-        if(real_steering > 128 && real_steering < (256 - w->c_hull_turn_rate)){
-            real_steering = 256 - w->c_hull_turn_rate;
+        if(real_steering > 512 && real_steering < (1024 - w->c_hull_turn_rate)){
+            real_steering = 1024 - w->c_hull_turn_rate;
         }
         w->tanks[i]->_req_steering -= real_steering;
 
-        w->tanks[i]->heading = (w->tanks[i]->heading + real_steering) % 256;
+        w->tanks[i]->heading = (w->tanks[i]->heading + real_steering) % 1024;
         w->tanks[i]->speed = w->tanks[i]->_req_throttle;
         if(w->tanks[i]->speed > 100)
             w->tanks[i]->speed = 100;
 
         /* drive! */
-        double rangle = (w->tanks[i]->heading) * M_PI / 128;
+        double rangle = (w->tanks[i]->heading) * M_PI / 512;
         double dist = (w->tanks[i]->speed / 100.0) * 6.0;
         int dy = floor(0.5 + (dist * cos(rangle)));
         int dx = floor(0.5 + (dist * sin(rangle)));
@@ -156,36 +156,36 @@ void _physics_tick(bots_world *w) {
         /* turn turret */
         turret_steering = w->tanks[i]->_req_turret_steering;
         if(w->tanks[i]->_req_turret_keepshift) /* turret keepshift */
-            turret_steering = (turret_steering + 256 - real_steering) % 256;
-        turret_steering = turret_steering % 256;
+            turret_steering = (turret_steering + 1024 - real_steering) % 1024;
+        turret_steering = turret_steering % 1024;
 
         real_turret_steering = turret_steering;
-        if(real_turret_steering <= 128 && real_turret_steering > w->c_turret_turn_rate){
+        if(real_turret_steering <= 512 && real_turret_steering > w->c_turret_turn_rate){
             real_turret_steering = w->c_turret_turn_rate;
         }
-        if(real_turret_steering > 128 && real_turret_steering < (256 - w->c_turret_turn_rate)){
-            real_turret_steering = 256 - w->c_turret_turn_rate;
+        if(real_turret_steering > 512 && real_turret_steering < (1024 - w->c_turret_turn_rate)){
+            real_turret_steering = 1024 - w->c_turret_turn_rate;
         }
         w->tanks[i]->_req_turret_steering -= real_turret_steering;
 
-        w->tanks[i]->turret_offset = (w->tanks[i]->turret_offset + real_turret_steering) % 256;
+        w->tanks[i]->turret_offset = (w->tanks[i]->turret_offset + real_turret_steering) % 1024;
 
         /* turn scanner */
         scanner_steering = w->tanks[i]->_req_scanner_steering;
         if(w->tanks[i]->_req_scanner_keepshift) /* scanner keepshift */
-            scanner_steering = (scanner_steering + 256 - real_steering) % 256;
-        scanner_steering = scanner_steering % 256;
+            scanner_steering = (scanner_steering + 1024 - real_steering) % 1024;
+        scanner_steering = scanner_steering % 1024;
 
         real_scanner_steering = scanner_steering;
-        if(real_scanner_steering <= 128 && real_scanner_steering > w->c_scanner_turn_rate) {
+        if(real_scanner_steering <= 512 && real_scanner_steering > w->c_scanner_turn_rate) {
             real_scanner_steering = w->c_scanner_turn_rate;
         }
-        if(real_scanner_steering > 128 && real_scanner_steering < (256 - w->c_scanner_turn_rate)) {
-            real_scanner_steering = 256 - w->c_scanner_turn_rate;
+        if(real_scanner_steering > 512 && real_scanner_steering < (1024 - w->c_scanner_turn_rate)) {
+            real_scanner_steering = 1024 - w->c_scanner_turn_rate;
         }
         w->tanks[i]->_req_scanner_steering -= real_scanner_steering;
 
-        w->tanks[i]->scanner_offset = (w->tanks[i]->scanner_offset + real_scanner_steering) % 256;
+        w->tanks[i]->scanner_offset = (w->tanks[i]->scanner_offset + real_scanner_steering) % 1024;
     }
 }
 

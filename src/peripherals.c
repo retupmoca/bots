@@ -35,7 +35,7 @@ void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t
     /* request scanner steering */
     uint16_t scanner_steering = w->cpus[i]->memory[steering] << 8;
     scanner_steering = scanner_steering | w->cpus[i]->memory[steering+1];
-    scanner_steering = scanner_steering % 256;
+    scanner_steering = scanner_steering % 1024;
     w->tanks[i]->_req_scanner_steering = scanner_steering;
     w->tanks[i]->_req_scanner_keepshift = w->cpus[i]->memory[keepshift];
 
@@ -46,13 +46,11 @@ void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t
         
         /* check angle and range of each bot against scan parameters */
         int radar_arc = w->cpus[i]->memory[arc];
-        if(radar_arc > 64)
-            radar_arc = 64;
         int radar_range = w->cpus[i]->memory[range] << 8;
         radar_range |= w->cpus[i]->memory[range+1];
         
-        uint8_t radar_left = (heading - radar_arc) % 256;
-        uint8_t radar_right = (heading + radar_arc) % 256;
+        uint16_t radar_left = (heading - radar_arc) % 1024;
+        uint16_t radar_right = (heading + radar_arc) % 1024;
         
         int seen_index = 0;
         int seen_bots[256];
@@ -69,7 +67,7 @@ void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t
             int32_t x = w->tanks[j]->x - w->tanks[i]->x;
             int32_t y = w->tanks[j]->y - w->tanks[i]->y;
             
-            uint8_t angle = (int)(atan2(x, y) * 128 / M_PI) % 256;
+            uint8_t angle = (int)(atan2(x, y) * 512 / M_PI) % 1024;
             int32_t range = (int)(sqrt(y * y + x * x));
             
             if(   range <= radar_range
@@ -120,7 +118,7 @@ void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_
 
     uint16_t turret_steering = w->cpus[i]->memory[steering] << 8;
     turret_steering = turret_steering | w->cpus[i]->memory[steering+1];
-    turret_steering = turret_steering % 256;
+    turret_steering = turret_steering % 1024;
     w->tanks[i]->_req_turret_steering = turret_steering;
     w->tanks[i]->_req_turret_keepshift = w->cpus[i]->memory[keepshift];
 
@@ -135,7 +133,7 @@ void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_
         s->x = w->tanks[i]->x;
         s->y = w->tanks[i]->y;
             
-        double rangle = s->heading * M_PI / 128;
+        double rangle = s->heading * M_PI / 1024;
         int dist = 60;
         int dy = floor(0.5 + (dist * cos(rangle)));
         int dx = floor(0.5 + (dist * sin(rangle)));
@@ -171,6 +169,6 @@ void bots_peripheral_hull(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t 
 
     uint16_t steering = w->cpus[i]->memory[m_steering] << 8;
     steering = steering | w->cpus[i]->memory[m_steering+1];
-    steering = steering % 256;
+    steering = steering % 1024;
     w->tanks[i]->_req_steering = steering;
 }
