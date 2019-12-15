@@ -3,11 +3,11 @@ all: bin/bots.exe bin/bots_asm.exe bin/bots.dll
 bin/bots.exe: src/main.obj bin/bots.dll
     cl /Iinclude /o bin/bots.exe src/main.obj bin/bots.lib
 
-bin/bots_asm.exe: src/asm_main.obj bin/bots.dll
-    cl /Iinclude /o bin/bots_asm.exe src/asm_main.obj bin/bots.lib
+bin/bots_asm.exe: asm_src/main.obj bin/bots.dll
+    cl /Iinclude /o bin/bots_asm.exe asm_src/main.obj bin/bots.lib
 
-src/asm_main.obj: src/asm_main.c
-    cl /Iinclude /Fosrc/asm_main.obj /c src/asm_main.c
+asm_src/main.obj: asm_src/main.c
+    cl /Iinclude /Foasm_src/main.obj /c asm_src/main.c
 
 src/main.obj: src/main.c
     cl /Iinclude /Fosrc/main.obj /c src/main.c
