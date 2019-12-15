@@ -11,6 +11,10 @@ cli : bin/bots
 asm : bin/bots_asm
 lib : lib/libbots.so
 
+# just rebuild everything on a header change, since we aren't tracking
+# dependencies for each .c file
+**/*.o : include/**/*.h
+
 bin/bots : cli_src/main.o lib/libbots.so
 	gcc -g -o bin/bots -Llib cli_src/main.o -lbots
 
