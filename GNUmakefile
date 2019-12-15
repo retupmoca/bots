@@ -5,10 +5,14 @@ DESTDIR = ""
 
 LIBDIR = lib
 
+.PHONY : all cli asm lib
 all : bin/bots bin/bots_asm lib/libbots.so
+cli : bin/bots
+asm : bin/bots_asm
+lib : lib/libbots.so
 
-bin/bots : src/main.o lib/libbots.so
-	gcc -g -o bin/bots -Llib src/main.o -lbots
+bin/bots : cli_src/main.o lib/libbots.so
+	gcc -g -o bin/bots -Llib cli_src/main.o -lbots
 
 bin/bots_asm : asm_src/main.o lib/libbots.so
 	gcc -g -o bin/bots_asm -Llib asm_src/main.o -lbots
@@ -16,6 +20,7 @@ bin/bots_asm : asm_src/main.o lib/libbots.so
 lib/libbots.so : src/ops.o src/cpu.o src/world.o src/bots.o src/peripherals.o
 	gcc -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/bots.o src/peripherals.o -lm
 
+.PHONY : install
 install :
 	mkdir -p ${DESTDIR}/${PREFIX}/bin
 	cp bin/* ${DESTDIR}/${PREFIX}/bin
@@ -24,5 +29,6 @@ install :
 	mkdir -p ${DESTDIR}/${PREFIX}/include
 	cp -r include/* ${DESTDIR}/${PREFIX}/include
 
+.PHONY : clean
 clean :
 	rm -f asm_src/*o src/*o bin/bots bin/bots_asm lib/*so

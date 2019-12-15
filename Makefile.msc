@@ -1,7 +1,7 @@
 all: bin/bots.exe bin/bots_asm.exe bin/bots.dll
 
-bin/bots.exe: src/main.obj bin/bots.dll
-    cl /Iinclude /o bin/bots.exe src/main.obj bin/bots.lib
+bin/bots.exe: cli_src/main.obj bin/bots.dll
+    cl /Iinclude /o bin/bots.exe cli_src/main.obj bin/bots.lib
 
 bin/bots_asm.exe: asm_src/main.obj bin/bots.dll
     cl /Iinclude /o bin/bots_asm.exe asm_src/main.obj bin/bots.lib
@@ -9,8 +9,8 @@ bin/bots_asm.exe: asm_src/main.obj bin/bots.dll
 asm_src/main.obj: asm_src/main.c
     cl /Iinclude /Foasm_src/main.obj /c asm_src/main.c
 
-src/main.obj: src/main.c
-    cl /Iinclude /Fosrc/main.obj /c src/main.c
+cli_src/main.obj: cli_src/main.c
+    cl /Iinclude /Focli_src/main.obj /c cli_src/main.c
 
 bin/bots.dll: src/ops.obj src/cpu.obj src/world.obj src/bots.obj
     cl /Iinclude /LD /o bin/bots.dll src/ops.obj src/cpu.obj src/world.obj src/bots.obj src/peripherals.obj
