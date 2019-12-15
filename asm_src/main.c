@@ -30,7 +30,7 @@ asm_opdata ops[OPCOUNT] = {
     { "store", " b", 3, OPT_START_RB },
     { "load", " b", 3, 0 },
     { "cmp", "", 2, OPT_START_RB | OPT_CAN_SWAP },
-    { "jmp", " zZ<=!>c", 2, OPT_START_RB }
+    { "jmp", "   <=>!c", 2, OPT_START_RB }
 };
 
 typedef struct {

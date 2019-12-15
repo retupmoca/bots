@@ -104,7 +104,9 @@ Does nothing. Takes no arguments.
     jmp.< ... ; jump if less than
     jmp.= ... ; jump if equal
     jmp.> ... ; jump if greater than
-    jmp.! ... ; jump if not equal
+    jmp.!< .. ; jump if not less
+    jmp.!> .. ; jump if not greater
+    jmp.!= .. ; jump if not equal
     jmp.c ... ; call: push pc onto stack before jumping
 
 # registers

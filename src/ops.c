@@ -244,12 +244,12 @@ uint8_t bots_op_jmp(bots_cpu *m, uint8_t cycle, uint8_t flags,
     uint16_t target = compute_memory_address(m, 4, 0, flags, rb, imm);
     /* flags:
      * use immediate as register
-     * jump if zero
-     * jump if not zero
+     * 
+     * 
      * jump if less
      * jump if equal
-     * jump if not equal
      * jump if greater
+     * invert the result of previous 'if'
      * call: push next instruction onto stack
      */
 
@@ -257,34 +257,21 @@ uint8_t bots_op_jmp(bots_cpu *m, uint8_t cycle, uint8_t flags,
 
     uint8_t jump = 1;
 
-    /* if zero opflag and not 0 cmpflag, don't jump */
-    if(flags & 0x40 && !(m->registers[11] & 0x1000))
+    /* if less and no less-than flag */
+    if(flags & 0x10 && !(m->registers[11] & 0x8000))
         jump = 0;
-    /* if not zero */
-    else if(flags & 0x20 && m->registers[11] & 0x1000)
+
+    /* if greater and no greater-than flag */
+    if(flags & 0x04 && !(m->registers[11] & 0x4000))
         jump = 0;
-    /* if less */
-    else if(flags & 0x10) {
-        if (flags & 0x08 && !(m->registers[11] & 0x2000
-                              || m->registers[11] & 0x8000))
-            jump = 0;
-        if(!(flags & 0x08) && !(m->registers[11] & 0x8000))
-            jump = 0;
-    }
-    /* if greater */
-    else if(flags & 0x02) {
-        if(flags & 0x08 && !(m->registers[11] & 0x4000
-                             || m->registers[11] & 0x2000))
-            jump = 0;
-        if(!(flags & 0x08) && !(m->registers[11] & 0x4000))
-            jump = 0;
-    }
-    /* if equal */
-    else if(flags & 0x08 && !(m->registers[11] & 0x2000))
+
+    /* if equal and no equal flag */
+    if(flags & 0x08 && !(m->registers[11] & 0x2000))
         jump = 0;
-    /* if not equal */
-    else if(flags & 0x04 && m->registers[11] & 0x2000)
-        jump = 0;
+
+    /* check for invert */
+    if(flags & 0x02)
+        jump = !jump;
 
     if(jump && !cycle && flags & 0x01) { /* if this is the first cycle of a call */
         m->registers[10] -= 2;

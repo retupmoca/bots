@@ -21,6 +21,6 @@ add r3 r0 0
 !delay
 add r3 r3 1
 cmp r3 10
-jmp.<= r0 !delay
+jmp.!> r0 !delay
 
 jmp r0 !mainloop
