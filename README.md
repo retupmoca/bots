@@ -139,6 +139,7 @@ addr hex | addr dec | size | what
 0xfee2 | 65250 | w | radar: result range
 0xfee0 | 65248 | w | radar: result offset
 |||
+0xfed4 | 65236 | w | turret: target offset
 0xfed2 | 65234 | w | turret: steering
 0xfed1 | 65233 | b | turret: keepshift
 0xfed0 | 65232 | b | turret: fire

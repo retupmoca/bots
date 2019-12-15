@@ -117,10 +117,14 @@ void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_
     uint16_t fire = b;
     uint16_t keepshift = fire + 1;
     uint16_t steering = keepshift + 1;
+    uint16_t target_offset = steering + 2;
 
     if(pre) {
         w->cpus[i]->memory[steering] = w->tanks[i]->_req_turret_steering >> 8;
         w->cpus[i]->memory[steering+1] = w->tanks[i]->_req_turret_steering & 0xff;
+        uint16_t t_target_offset = (w->tanks[i]->turret_offset + w->tanks[i]->_req_turret_steering) % 1024;
+        w->cpus[i]->memory[target_offset] = t_target_offset >> 8;
+        w->cpus[i]->memory[target_offset + 1] = t_target_offset & 0xff;
 
         /* fire */
         w->cpus[i]->memory[fire] = 0;
@@ -130,6 +134,13 @@ void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_
     uint16_t turret_steering = w->cpus[i]->memory[steering] << 8;
     turret_steering = turret_steering | w->cpus[i]->memory[steering+1];
     turret_steering = turret_steering % 1024;
+    if(turret_steering == w->tanks[i]->_req_turret_steering) {
+        /* user didn't change steering directly; try the target_offset */
+        uint16_t t_target_offset = w->cpus[i]->memory[target_offset] << 8;
+        t_target_offset |= w->cpus[i]->memory[target_offset + 1];
+
+        turret_steering = (t_target_offset - w->tanks[i]->turret_offset) % 1024;
+    }
     w->tanks[i]->_req_turret_steering = turret_steering;
     w->tanks[i]->_req_turret_keepshift = w->cpus[i]->memory[keepshift];
 
