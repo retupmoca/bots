@@ -1,4 +1,5 @@
-CFLAGS = -g -fPIC -Iinclude
+CC = gcc #g++
+CFLAGS = -g -fPIC -Iinclude #-fpermissive
 
 PREFIX = /usr/local
 DESTDIR = ""
@@ -16,13 +17,13 @@ lib : lib/libbots.so
 **/*.o : include/**/*.h
 
 bin/bots : cli_src/main.o lib/libbots.so
-	gcc -g -o bin/bots -Llib cli_src/main.o -lbots
+	$(CC) -g -o bin/bots -Llib cli_src/main.o -lbots
 
 bin/bots_asm : asm_src/main.o lib/libbots.so
-	gcc -g -o bin/bots_asm -Llib asm_src/main.o -lbots
+	$(CC) -g -o bin/bots_asm -Llib asm_src/main.o -lbots
 
 lib/libbots.so : src/ops.o src/cpu.o src/world.o src/bots.o src/peripherals.o
-	gcc -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/bots.o src/peripherals.o -lm
+	$(CC) -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/bots.o src/peripherals.o -lm
 
 .PHONY : install
 install :
@@ -35,4 +36,4 @@ install :
 
 .PHONY : clean
 clean :
-	rm -f asm_src/*o src/*o bin/bots bin/bots_asm lib/*so
+	rm -f asm_src/*o cli_src/*o src/*o bin/bots bin/bots_asm lib/*so

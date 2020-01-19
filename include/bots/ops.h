@@ -28,6 +28,6 @@ typedef uint8_t (*bots_cpu_op)(
         uint16_t imm
 );
 
-DLL_EXPORT bots_cpu_op bots_cpu_oplist[BOTS_CPU_OPCOUNT];
+DLL_EXPORT extern bots_cpu_op bots_cpu_oplist[BOTS_CPU_OPCOUNT];
 
 #endif

@@ -39,6 +39,28 @@ struct _bots_peripheral {
 };
 
 typedef struct {
+    uint8_t type; /* arc segment or rect */
+    union {
+        struct {
+            uint16_t width;
+            uint16_t height;
+        };
+        struct {
+            uint16_t arc;
+            uint16_t outer_radius;
+            uint16_t inner_radius;
+        };
+    };
+
+    uint32_t x;
+    uint32_t y;
+    uint16_t rotation;
+    
+    uint16_t velocity;
+    uint16_t rotation_velocity;
+} bots_world_object;
+
+typedef struct {
     int32_t x;
     int32_t y;
 
