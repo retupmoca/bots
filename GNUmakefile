@@ -1,5 +1,5 @@
-CC = gcc #g++
-CFLAGS = -g -fPIC -Iinclude #-fpermissive
+CFLAGS = -g -fPIC -Iinclude
+CXXFLAGS = -g -fPIC -Iinclude
 
 PREFIX = /usr/local
 DESTDIR = ""

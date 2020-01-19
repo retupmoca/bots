@@ -1,6 +1,10 @@
 #ifndef BOTS_OPS_H
 #define BOTS_OPS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include <bots/struct.h>
@@ -29,5 +33,9 @@ typedef uint8_t (*bots_cpu_op)(
 );
 
 DLL_EXPORT extern bots_cpu_op bots_cpu_oplist[BOTS_CPU_OPCOUNT];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

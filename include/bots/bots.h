@@ -1,5 +1,10 @@
 #ifndef BOTS_BOTS_H
 #define BOTS_BOTS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <bots/struct.h>
 
@@ -24,4 +29,9 @@ DLL_EXPORT char bots_add_bot_from_file(bots_world* g, char* filename);
 DLL_EXPORT void bots_spawn(bots_world *g);
 
 DLL_EXPORT bots_events* bots_tick(bots_world* g);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

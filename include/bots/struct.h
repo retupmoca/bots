@@ -1,6 +1,10 @@
 #ifndef BOTS_STRUCT_H
 #define BOTS_STRUCT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 typedef struct _bots_world bots_world;
@@ -129,5 +133,9 @@ struct _bots_world {
     
     bots_events* _tick_events;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
