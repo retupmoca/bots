@@ -1,14 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <chrono>
+#include <thread>
 
 #include <bots/bots.h>
 
-#ifdef _WIN32
-# include <windows.h>
-# define sleep(x) Sleep(x * 1000)
-#else
-# include <unistd.h>
-#endif
+using std::printf, std::this_thread::sleep_for, std::chrono::milliseconds;
 
 int main(int argc, char *argv[]) {
     bots_world *g = bots_create_world();
@@ -33,7 +29,7 @@ int main(int argc, char *argv[]) {
         printf("Bot 1 heading: %i\n", g->tanks[0]->heading);
         printf("Bot 1 position: %i:%i\n", g->tanks[0]->x, g->tanks[0]->y);
         printf("Bot 2 position: %i:%i\n", g->tanks[1]->x, g->tanks[1]->y);
-        sleep(1);
+        sleep_for(milliseconds(1000));
     }
     bots_free_world(g);
     return 0;
