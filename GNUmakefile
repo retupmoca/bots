@@ -17,7 +17,7 @@ lib : lib/libbots.so
 **/*.o : include/**/*.h
 
 bin/bots : cli_src/main.o lib/libbots.so
-	$(CXX) $(CXXFLAGS) -o bin/bots -Llib cli_src/main.o -lbots
+	$(CXX) $(CXXFLAGS) -o bin/bots -Llib cli_src/main.o -lbots -lfmt
 
 bin/bots_asm : asm_src/main.o lib/libbots.so
 	$(CC) -g -o bin/bots_asm -Llib asm_src/main.o -lbots
