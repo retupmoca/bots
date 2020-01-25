@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <bots/ops.h>
+#include <bots/ops.hpp>
 
 uint8_t bots_op_nop(bots_cpu *m, uint8_t cycle, uint8_t flags,
                     uint8_t ra, uint8_t rb, uint16_t imm) {

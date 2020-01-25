@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include <bots/struct.h>
+#include <bots/struct.hpp>
 
 void bots_cpu_cycle(bots_cpu*);
 

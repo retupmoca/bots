@@ -1,6 +1,8 @@
 #ifndef BOTS_STRUCT_H
 #define BOTS_STRUCT_H
 
+namespace bots { class World; }
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,7 +41,7 @@ struct _bots_peripheral {
 
     void *_data;
 
-    void (*process_tick)(bots_peripheral *p, bots_world *w, uint8_t bot_id, uint8_t pre);
+    void (*process_tick)(bots_peripheral *p, bots::World *w, uint8_t bot_id, uint8_t pre);
 };
 
 typedef struct {

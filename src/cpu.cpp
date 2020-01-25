@@ -1,5 +1,5 @@
-#include <bots/cpu.h>
-#include <bots/ops.h>
+#include <bots/cpu.hpp>
+#include <bots/ops.hpp>
 
 static void fetch(bots_cpu *m) {
     if(m->fetch_pc > m->user_mem_max - 3)

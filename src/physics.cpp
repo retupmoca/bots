@@ -1,4 +1,4 @@
-#include <bots/struct.h>
+#include <bots/struct.hpp>
 
 void bots_phy_push(
     bots_world *world, bots_world_object *obj,

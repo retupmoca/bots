@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <math.h>
-#include <bots/world.h>
-#include <bots/peripherals.h>
+#include <bots/world.hpp>
+#include <bots/peripherals.hpp>
+#include <bots/world.hpp>
 
-void bots_peripheral_reset(bots_peripheral *p, bots_world *w, uint8_t id, uint8_t pre) {
+void bots_peripheral_reset(bots_peripheral *p, bots::World *w, uint8_t id, uint8_t pre) {
     if(w->cpus[id]->memory[p->mem_base]) {
         w->cpus[id]->fetch_pc = 0;
         w->cpus[id]->fetch_flag = 0;
@@ -12,7 +13,7 @@ void bots_peripheral_reset(bots_peripheral *p, bots_world *w, uint8_t id, uint8_
     }
 }
 
-void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t pre) {
+void bots_peripheral_radar(bots_peripheral *p, bots::World *w, uint8_t i, uint8_t pre) {
     uint16_t b = p->mem_base;
     uint16_t result_offset = b;
     uint16_t result_range = result_offset + 2;
@@ -108,11 +109,11 @@ void bots_peripheral_radar(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t
                 w->cpus[i]->memory[result_offset+1] = seen_bot_angle[j] & 0xff;
             }
         }
-        bots_add_event(w, BOTS_EVENT_SCAN, i);
+        w->add_event(BOTS_EVENT_SCAN, i);
     }
 }
 
-void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t pre) {
+void bots_peripheral_turret(bots_peripheral *p, bots::World *w, uint8_t i, uint8_t pre) {
     uint16_t b = p->mem_base;
     uint16_t fire = b;
     uint16_t keepshift = fire + 1;
@@ -146,7 +147,7 @@ void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_
 
     /* fire */
     if(w->cpus[i]->memory[fire]) {
-        bots_shot* s = malloc(sizeof(bots_shot));
+        bots_shot* s = (bots_shot*)malloc(sizeof(bots_shot));
         
         /* get global heading of gun */
         s->heading = w->tanks[i]->heading + w->tanks[i]->turret_offset;
@@ -170,11 +171,11 @@ void bots_peripheral_turret(bots_peripheral *p, bots_world *w, uint8_t i, uint8_
         for(; w->shots[i]; i++)
             ;
         w->shots[i] = s;
-        bots_add_event(w, BOTS_EVENT_FIRE, i);
+        w->add_event(BOTS_EVENT_FIRE, i);
     }
 }
 
-void bots_peripheral_hull(bots_peripheral *p, bots_world *w, uint8_t i, uint8_t pre) {
+void bots_peripheral_hull(bots_peripheral *p, bots::World *w, uint8_t i, uint8_t pre) {
     uint16_t b = p->mem_base;
     uint16_t m_throttle = b;
     uint16_t m_steering = m_throttle + 1;

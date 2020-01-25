@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#include <bots/struct.h>
+#include <bots/struct.hpp>
 
 #define BOTS_CPU_OPCOUNT 16
 
