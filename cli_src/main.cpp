@@ -3,9 +3,7 @@
 #include <chrono>
 #include <thread>
 
-#include <bots/world.hpp>
-
-#include <bots/bots.hpp>
+#include <bots.hpp>
 
 int main(int argc, char *argv[]) {
     bots::World g{{.cpus_per_tick = 1}};

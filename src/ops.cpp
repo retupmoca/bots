@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 
 #include <bots/ops.hpp>
 
@@ -180,12 +180,19 @@ uint8_t bots_op_store(bots::Cpu &m, uint8_t cycle, uint8_t flags,
      */
     if(flags & 0x04) {
         uint16_t target = compute_memory_address(m, 1, 1, flags, rb, imm);
-        m.memory[target] = m.registers[ra] & 0xff;
+        if (target >= 0xf000)
+            m.peripherals.write_byte(target, m.registers[ra] & 0xff);
+        else
+            m.memory[target] = m.registers[ra] & 0xff;
     }
     else {
         uint16_t target = compute_memory_address(m, 2, 1, flags, rb, imm);
-        m.memory[target] = m.registers[ra] >> 8;
-        m.memory[target+1] = m.registers[ra] & 0xff;
+        if (target >= 0xf000)
+            m.peripherals.write_word(target, m.registers[ra]);
+        else {
+            m.memory[target] = m.registers[ra] >> 8;
+            m.memory[target+1] = m.registers[ra] & 0xff;
+        }
     }
 
     return 1;
@@ -199,12 +206,19 @@ uint8_t bots_op_load(bots::Cpu &m, uint8_t cycle, uint8_t flags,
      */
     if(flags & 0x04) {
         uint16_t target = compute_memory_address(m, 1, 1, flags, rb, imm);
-        m.registers[ra] = m.memory[target];
+        if (target >= 0xf000)
+            m.registers[ra] = m.peripherals.read_byte(target);
+        else
+            m.registers[ra] = m.memory[target];
     }
     else {
         uint16_t target = compute_memory_address(m, 2, 1, flags, rb, imm);
-        m.registers[ra] = m.memory[target] << 8;
-        m.registers[ra] |= m.memory[target+1];
+        if (target >= 0xf000)
+            m.registers[ra] = m.peripherals.read_word(target);
+        else {
+            m.registers[ra] = m.memory[target] << 8;
+            m.registers[ra] |= m.memory[target+1];
+        }
     }
 
     return 1;

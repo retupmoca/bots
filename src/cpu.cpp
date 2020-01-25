@@ -2,6 +2,49 @@
 #include <bots/ops.hpp>
 
 namespace bots {
+    void MappedPeripherals::mount(uint16_t address, std::unique_ptr<Peripheral> p) {
+        peripherals.emplace(address, std::move(p));
+    }
+
+    void MappedPeripherals::write_word(uint16_t address, uint16_t value) {
+        for(auto &p : peripherals) {
+            if (p.first > address)
+                break;
+
+            if (p.first + p.second->size() > address)
+                p.second->write_word(address - p.first, value);
+        }
+    }
+    void MappedPeripherals::write_byte(uint16_t address, uint8_t value) {
+        for(auto &p : peripherals) {
+            if (p.first > address)
+                break;
+
+            if (p.first + p.second->size() > address)
+                p.second->write_byte(address - p.first, value);
+        }
+    }
+    uint16_t MappedPeripherals::read_word(uint16_t address) {
+        for(auto &p : peripherals) {
+            if (p.first > address)
+                break;
+
+            if (p.first + p.second->size() > address)
+                return p.second->read_word(address - p.first);
+        }
+        return 0;
+    }
+    uint8_t MappedPeripherals::read_byte(uint16_t address) {
+        for(auto &p : peripherals) {
+            if (p.first > address)
+                break;
+
+            if (p.first + p.second->size() > address)
+                return p.second->read_byte(address - p.first);
+        }
+        return 0;
+    }
+
     void Cpu::fetch() {
         if(fetch_pc > user_mem_max - 3)
             fetch_pc = 0;

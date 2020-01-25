@@ -1,12 +1,8 @@
-#include <bots/cpu.hpp>
 #include <bots/world.hpp>
-
 #include <bots/peripherals.hpp>
 
 #include <iostream>
 #include <fstream>
-#include <iterator>
-#include <cstdlib>
 #include <cstring>
 #include <cmath>
 
@@ -21,17 +17,14 @@ namespace bots {
         cpu->registers[10] = 0xefff;
         memcpy(cpu->memory, &data[0], data.size());
 
-        bots_peripheral *peripherals = (bots_peripheral*)calloc(5, sizeof(bots_peripheral));
-        peripherals[0].mem_base = 0xfef0;
-        peripherals[0].process_tick = &bots_peripheral_reset;
-        peripherals[1].mem_base = 0xfee0;
-        peripherals[1].process_tick = &bots_peripheral_radar;
-        peripherals[2].mem_base = 0xfed0;
-        peripherals[2].process_tick = &bots_peripheral_turret;
-        peripherals[3].mem_base = 0xfec0;
-        peripherals[3].process_tick = &bots_peripheral_hull;
+        auto bot = std::make_unique<Bot>(world, std::move(cpu), std::move(tank));
 
-        return std::make_unique<Bot>(world, std::move(cpu), std::move(tank), peripherals);
+        bot->cpu->peripherals.mount(0xfef0, std::move(std::make_unique<ResetPeripheral>(*bot)));
+        bot->cpu->peripherals.mount(0xfee0, std::move(std::make_unique<RadarPeripheral>(*bot)));
+        bot->cpu->peripherals.mount(0xfed0, std::move(std::make_unique<TurretPeripheral>(*bot)));
+        bot->cpu->peripherals.mount(0xfec0, std::move(std::make_unique<HullPeripheral>(*bot)));
+
+        return bot;
     }
 
     std::unique_ptr<Bot> Bot::build(World &world, std::istream &handle) {
@@ -60,6 +53,9 @@ namespace bots {
     World::World(Options options = {}) : options(options) {}
     World::~World() {}
 
+    void World::add_event(World::Event::Type event_type, Bot &bot) {
+        tick_events.push_back(Event{.type = event_type, .bot = bot, .shot = {}});
+    }
     void World::add_event(World::Event::Type event_type, uint8_t bot_id) {
         tick_events.push_back(Event{.type = event_type, .bot = *bots[bot_id], .shot = {}});
     }
@@ -223,19 +219,12 @@ namespace bots {
             if(bots[i]->tank->health <= 0)
                 continue;
 
-            /** write I/O ports to CPU **/
-            for(int j=0; bots[i]->peripherals[j].mem_base != 0; j++)
-                bots[i]->peripherals[j].process_tick(
-                        bots[i]->peripherals + j, this, i, 1);
-
             /** run CPU cycles **/
             for(int j=0; j<options.cpus_per_tick; j++)
                 bots[i]->cpu->cycle();
 
-            /** read I/O ports from CPU **/
-            for(int j=0; bots[i]->peripherals[j].mem_base != 0; j++)
-                bots[i]->peripherals[j].process_tick(
-                        bots[i]->peripherals + j, this, i, 0);
+            for(auto &p : bots[i]->cpu->peripherals.peripherals)
+                p.second->tick();
         }
     }
 

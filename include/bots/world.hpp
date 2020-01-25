@@ -1,12 +1,10 @@
 #pragma once
 
-#include <optional>
 #include <list>
 #include <vector>
 #include <memory>
 #include <cstdint>
 
-#include <bots/struct.hpp>
 #include <bots/cpu.hpp>
 
 namespace bots {
@@ -38,19 +36,13 @@ namespace bots {
             std::unique_ptr<Tank> tank;
             std::unique_ptr<Cpu> cpu;
 
-            bots_peripheral *peripherals;
-
             static std::unique_ptr<Bot> build(World &world, const std::string &filename);
             static std::unique_ptr<Bot> build(World &world, std::istream &handle);
             static std::unique_ptr<Bot> build(World &world, std::vector<uint8_t> &data);
 
-            Bot(World &world, std::unique_ptr<Cpu> cpu, std::unique_ptr<Tank> tank, bots_peripheral *peripherals)
-            : world(world), cpu(std::move(cpu)), tank(std::move(tank)), peripherals(peripherals)
+            Bot(World &world, std::unique_ptr<Cpu> cpu, std::unique_ptr<Tank> tank)
+            : world(world), cpu(std::move(cpu)), tank(std::move(tank))
             {}
-
-            ~Bot() {
-                free(peripherals);
-            }
     };
 
     struct Shot {
@@ -77,7 +69,7 @@ namespace bots {
 
                 Type type;
                 Bot &bot;
-                std::optional<Shot> shot;
+                const Shot *shot;
             };
 
             Options options;
@@ -96,6 +88,7 @@ namespace bots {
 
             std::vector<Event> tick();
 
+            void add_event(Event::Type, Bot&);
             void add_event(Event::Type, uint8_t);
             void place_bots();
 
