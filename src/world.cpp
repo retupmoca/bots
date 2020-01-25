@@ -13,7 +13,7 @@
 namespace bots {
     // class Bot
     std::unique_ptr<Bot> Bot::build(World &world, std::vector<uint8_t> &data) {
-        bots_cpu* cpu = (bots_cpu*)calloc(1, sizeof(bots_cpu));
+        auto cpu = std::make_unique<Cpu>();
         auto tank = std::make_unique<Tank>();
 
         tank->health = 100;
@@ -31,7 +31,7 @@ namespace bots {
         peripherals[3].mem_base = 0xfec0;
         peripherals[3].process_tick = &bots_peripheral_hull;
 
-        return std::make_unique<Bot>(world, cpu, std::move(tank), peripherals);
+        return std::make_unique<Bot>(world, std::move(cpu), std::move(tank), peripherals);
     }
 
     std::unique_ptr<Bot> Bot::build(World &world, std::istream &handle) {
@@ -230,7 +230,7 @@ namespace bots {
 
             /** run CPU cycles **/
             for(int j=0; j<options.cpus_per_tick; j++)
-                bots_cpu_cycle(bots[i]->cpu);
+                bots[i]->cpu->cycle();
 
             /** read I/O ports from CPU **/
             for(int j=0; bots[i]->peripherals[j].mem_base != 0; j++)

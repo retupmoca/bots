@@ -5,12 +5,12 @@
 #include <bots/world.hpp>
 
 void bots_peripheral_reset(bots_peripheral *p, bots::World *w, uint8_t id, uint8_t pre) {
-    bots_cpu *cpu = w->bots[id]->cpu;
-    if(cpu->memory[p->mem_base]) {
-        cpu->fetch_pc = 0;
-        cpu->fetch_flag = 0;
-        cpu->decode_flag = 0;
-        cpu->memory[p->mem_base] = 0;
+    bots::Cpu &cpu = *w->bots[id]->cpu;
+    if(cpu.memory[p->mem_base]) {
+        cpu.fetch_pc = 0;
+        cpu.fetch_flag = 0;
+        cpu.decode_flag = 0;
+        cpu.memory[p->mem_base] = 0;
     }
 }
 
@@ -25,45 +25,45 @@ void bots_peripheral_radar(bots_peripheral *p, bots::World *w, uint8_t i, uint8_
     uint16_t steering = scan + 1;
     uint16_t target_offset = steering + 2;
 
-    bots_cpu *cpu = w->bots[i]->cpu;
+    bots::Cpu &cpu = *w->bots[i]->cpu;
     bots::Tank &tank = *w->bots[i]->tank;
 
     if(pre) {
         /* load updated steering offset into io ports */
-        cpu->memory[steering] = tank._req_scanner_steering >> 8;
-        cpu->memory[steering + 1] = tank._req_scanner_steering & 0xff;
+        cpu.memory[steering] = tank._req_scanner_steering >> 8;
+        cpu.memory[steering + 1] = tank._req_scanner_steering & 0xff;
         uint16_t s_target_offset = (tank.scanner_offset + tank._req_scanner_steering) % 1024;
-        cpu->memory[target_offset] = s_target_offset >> 8;
-        cpu->memory[target_offset + 1] = s_target_offset & 0xff;
+        cpu.memory[target_offset] = s_target_offset >> 8;
+        cpu.memory[target_offset + 1] = s_target_offset & 0xff;
 
         /* done scanning */
-        cpu->memory[scan] = 0;
+        cpu.memory[scan] = 0;
         return;
     }
 
     /* request scanner steering */
-    tank._req_scanner_keepshift = cpu->memory[keepshift];
-    uint16_t scanner_steering = cpu->memory[steering] << 8;
-    scanner_steering = scanner_steering | cpu->memory[steering+1];
+    tank._req_scanner_keepshift = cpu.memory[keepshift];
+    uint16_t scanner_steering = cpu.memory[steering] << 8;
+    scanner_steering = scanner_steering | cpu.memory[steering+1];
     scanner_steering = scanner_steering % 1024;
     if(scanner_steering == tank._req_scanner_steering) {
         /* user didn't change steering directly; try the target_offset */
-        uint16_t s_target_offset = cpu->memory[target_offset] << 8;
-        s_target_offset |= cpu->memory[target_offset + 1];
+        uint16_t s_target_offset = cpu.memory[target_offset] << 8;
+        s_target_offset |= cpu.memory[target_offset + 1];
 
         scanner_steering = (s_target_offset - tank.scanner_offset) % 1024;
     }
     tank._req_scanner_steering = scanner_steering;
 
     /* do scan */
-    if(cpu->memory[scan]) {
+    if(cpu.memory[scan]) {
         /* get global heading of scanner */
         uint32_t heading = tank.heading + tank.scanner_offset;
         
         /* check angle and range of each bot against scan parameters */
-        int radar_arc = cpu->memory[arc];
-        int radar_range = cpu->memory[range] << 8;
-        radar_range |= cpu->memory[range+1];
+        int radar_arc = cpu.memory[arc];
+        int radar_range = cpu.memory[range] << 8;
+        radar_range |= cpu.memory[range+1];
         
         uint16_t radar_left = (heading - radar_arc) % 1024;
         uint16_t radar_right = (heading + radar_arc) % 1024;
@@ -98,19 +98,19 @@ void bots_peripheral_radar(bots_peripheral *p, bots::World *w, uint8_t i, uint8_
         
         /* load closest seen bot into ports */
         uint16_t lowest_range = 0;
-        cpu->memory[result_range] = 0;
-        cpu->memory[result_range+1] = 0;
-        cpu->memory[result_offset] = 0;
-        cpu->memory[result_offset+1] = 0;
+        cpu.memory[result_range] = 0;
+        cpu.memory[result_range+1] = 0;
+        cpu.memory[result_offset] = 0;
+        cpu.memory[result_offset+1] = 0;
         for(j=0; j < seen_index; j++) {
             if(seen_bot_range[j] < lowest_range || lowest_range == 0) {
                 lowest_range = seen_bot_range[j];
-                cpu->memory[result_range] = lowest_range >> 8;
-                cpu->memory[result_range+1] = lowest_range & 0xff;
+                cpu.memory[result_range] = lowest_range >> 8;
+                cpu.memory[result_range+1] = lowest_range & 0xff;
                 
                 /* TODO: give some kind of scanner offset instead of bearing */
-                cpu->memory[result_offset] = seen_bot_angle[j] >> 8;
-                cpu->memory[result_offset+1] = seen_bot_angle[j] & 0xff;
+                cpu.memory[result_offset] = seen_bot_angle[j] >> 8;
+                cpu.memory[result_offset+1] = seen_bot_angle[j] & 0xff;
             }
         }
         w->add_event(bots::World::Event::Type::scan, i);
@@ -124,36 +124,36 @@ void bots_peripheral_turret(bots_peripheral *p, bots::World *w, uint8_t i, uint8
     uint16_t steering = keepshift + 1;
     uint16_t target_offset = steering + 2;
 
-    bots_cpu *cpu = w->bots[i]->cpu;
+    bots::Cpu &cpu = *w->bots[i]->cpu;
     bots::Tank &tank = *w->bots[i]->tank;
 
     if(pre) {
-        cpu->memory[steering] = tank._req_turret_steering >> 8;
-        cpu->memory[steering+1] = tank._req_turret_steering & 0xff;
+        cpu.memory[steering] = tank._req_turret_steering >> 8;
+        cpu.memory[steering+1] = tank._req_turret_steering & 0xff;
         uint16_t t_target_offset = (tank.turret_offset + tank._req_turret_steering) % 1024;
-        cpu->memory[target_offset] = t_target_offset >> 8;
-        cpu->memory[target_offset + 1] = t_target_offset & 0xff;
+        cpu.memory[target_offset] = t_target_offset >> 8;
+        cpu.memory[target_offset + 1] = t_target_offset & 0xff;
 
         /* fire */
-        cpu->memory[fire] = 0;
+        cpu.memory[fire] = 0;
         return;
     }
 
-    uint16_t turret_steering = cpu->memory[steering] << 8;
-    turret_steering = turret_steering | cpu->memory[steering+1];
+    uint16_t turret_steering = cpu.memory[steering] << 8;
+    turret_steering = turret_steering | cpu.memory[steering+1];
     turret_steering = turret_steering % 1024;
     if(turret_steering == tank._req_turret_steering) {
         /* user didn't change steering directly; try the target_offset */
-        uint16_t t_target_offset = cpu->memory[target_offset] << 8;
-        t_target_offset |= cpu->memory[target_offset + 1];
+        uint16_t t_target_offset = cpu.memory[target_offset] << 8;
+        t_target_offset |= cpu.memory[target_offset + 1];
 
         turret_steering = (t_target_offset - tank.turret_offset) % 1024;
     }
     tank._req_turret_steering = turret_steering;
-    tank._req_turret_keepshift = cpu->memory[keepshift];
+    tank._req_turret_keepshift = cpu.memory[keepshift];
 
     /* fire */
-    if(cpu->memory[fire]) {
+    if(cpu.memory[fire]) {
         bots::Shot s{
             .from = *w->bots[i]
         };
@@ -185,21 +185,21 @@ void bots_peripheral_hull(bots_peripheral *p, bots::World *w, uint8_t i, uint8_t
     uint16_t m_throttle = b;
     uint16_t m_steering = m_throttle + 1;
 
-    bots_cpu *cpu = w->bots[i]->cpu;
+    bots::Cpu &cpu = *w->bots[i]->cpu;
     bots::Tank &tank = *w->bots[i]->tank;
 
     if(pre) {
-        cpu->memory[m_steering] = tank._req_steering >> 8;
-        cpu->memory[m_steering+1] = tank._req_steering & 0xff;
+        cpu.memory[m_steering] = tank._req_steering >> 8;
+        cpu.memory[m_steering+1] = tank._req_steering & 0xff;
 
         return;
     }
 
-    int8_t throttle = cpu->memory[m_throttle];
+    int8_t throttle = cpu.memory[m_throttle];
     tank._req_throttle = throttle;
 
-    uint16_t steering = cpu->memory[m_steering] << 8;
-    steering = steering | cpu->memory[m_steering+1];
+    uint16_t steering = cpu.memory[m_steering] << 8;
+    steering = steering | cpu.memory[m_steering+1];
     steering = steering % 1024;
     tank._req_steering = steering;
 }

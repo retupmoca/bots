@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 #include <bots/struct.hpp>
+#include <bots/cpu.hpp>
 
 #define BOTS_CPU_OPCOUNT 16
 
@@ -24,7 +25,7 @@ extern "C" {
 #endif
 
 typedef uint8_t (*bots_cpu_op)(
-        bots_cpu* m,
+        bots::Cpu &m,
         uint8_t cycle,
         uint8_t flags,
         uint8_t ra,

@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include <bots/struct.hpp>
+#include <bots/cpu.hpp>
 
 namespace bots {
     class World;
@@ -35,20 +36,19 @@ namespace bots {
         public:
             World &world;
             std::unique_ptr<Tank> tank;
+            std::unique_ptr<Cpu> cpu;
 
-            bots_cpu *cpu;
             bots_peripheral *peripherals;
 
             static std::unique_ptr<Bot> build(World &world, const std::string &filename);
             static std::unique_ptr<Bot> build(World &world, std::istream &handle);
             static std::unique_ptr<Bot> build(World &world, std::vector<uint8_t> &data);
 
-            Bot(World &world, bots_cpu *cpu, std::unique_ptr<Tank> tank, bots_peripheral *peripherals)
-            : world(world), cpu(cpu), tank(std::move(tank)), peripherals(peripherals)
+            Bot(World &world, std::unique_ptr<Cpu> cpu, std::unique_ptr<Tank> tank, bots_peripheral *peripherals)
+            : world(world), cpu(std::move(cpu)), tank(std::move(tank)), peripherals(peripherals)
             {}
 
             ~Bot() {
-                free(cpu);
                 free(peripherals);
             }
     };
