@@ -14,24 +14,24 @@ namespace bots {
     // class Bot
     std::unique_ptr<Bot> Bot::build(World &world, std::vector<uint8_t> &data) {
         bots_cpu* cpu = (bots_cpu*)calloc(1, sizeof(bots_cpu));
-        bots_tank* tank = (bots_tank*)calloc(1, sizeof(bots_tank));
+        auto tank = std::make_unique<Tank>();
 
         tank->health = 100;
         cpu->user_mem_max = 0xefff;
         cpu->registers[10] = 0xefff;
         memcpy(cpu->memory, &data[0], data.size());
 
-        tank->peripherals = (bots_peripheral*)calloc(5, sizeof(bots_peripheral));
-        tank->peripherals[0].mem_base = 0xfef0;
-        tank->peripherals[0].process_tick = &bots_peripheral_reset;
-        tank->peripherals[1].mem_base = 0xfee0;
-        tank->peripherals[1].process_tick = &bots_peripheral_radar;
-        tank->peripherals[2].mem_base = 0xfed0;
-        tank->peripherals[2].process_tick = &bots_peripheral_turret;
-        tank->peripherals[3].mem_base = 0xfec0;
-        tank->peripherals[3].process_tick = &bots_peripheral_hull;
+        bots_peripheral *peripherals = (bots_peripheral*)calloc(5, sizeof(bots_peripheral));
+        peripherals[0].mem_base = 0xfef0;
+        peripherals[0].process_tick = &bots_peripheral_reset;
+        peripherals[1].mem_base = 0xfee0;
+        peripherals[1].process_tick = &bots_peripheral_radar;
+        peripherals[2].mem_base = 0xfed0;
+        peripherals[2].process_tick = &bots_peripheral_turret;
+        peripherals[3].mem_base = 0xfec0;
+        peripherals[3].process_tick = &bots_peripheral_hull;
 
-        return std::make_unique<Bot>(world, cpu, tank);
+        return std::make_unique<Bot>(world, cpu, std::move(tank), peripherals);
     }
 
     std::unique_ptr<Bot> Bot::build(World &world, std::istream &handle) {
@@ -57,39 +57,18 @@ namespace bots {
 
 namespace bots {
     // class World
-    World::World(Options options = {}) : options(options) {
-        _tick_events = (bots_events*)malloc(sizeof(bots_events));
-        _tick_events->events = (bots_event*)malloc(sizeof(bots_event));
-        _tick_events->_size = 1;
+    World::World(Options options = {}) : options(options) {}
+    World::~World() {}
 
-        _tick_events->event_count = 0;
-    }
-
-    World::~World() {
-        free(_tick_events->events);
-        free(_tick_events);
-    }
-
-    void World::add_event(uint8_t event_type, uint8_t bot_id) {
-        if(_tick_events->event_count == _tick_events->_size) {
-            _tick_events->_size *= 2;
-            _tick_events->events = (bots_event*)realloc(_tick_events->events,
-                                           sizeof(bots_event)
-                                            * _tick_events->_size);
-        }
-        bots_event *event = _tick_events->events
-                            + (_tick_events->event_count)++;
-
-        event->event_type = event_type;
-        event->bot_id = bot_id;
+    void World::add_event(World::Event::Type event_type, uint8_t bot_id) {
+        tick_events.push_back(Event{.type = event_type, .bot = *bots[bot_id], .shot = {}});
     }
 
     void World::_physics_tick() {
         /** run world physics **/
-        int i = 0;
-        bots_shot* s = 0;
         /* shots */
-        for(s=shots[0], i=0; s; s=shots[++i]) {
+        auto s = shots.begin();
+        while(s != shots.end()) {
             /* check collision */
             int hit = 0;
             int j;
@@ -102,22 +81,17 @@ namespace bots {
                 ){
                     /* hit! */
                     hit = 1;
-                    add_event(BOTS_EVENT_HIT, j);
+                    add_event(World::Event::Type::hit, j);
 
                     /* record damage */
                     bots[j]->tank->health -= 10;
                     if(bots[j]->tank->health <= 0) {
                         bots[j]->tank->health = 0;
-                        add_event(BOTS_EVENT_DEATH, j);
+                        add_event(World::Event::Type::death, j);
                     }
 
                     /* delete the shot */
-                    free(s);
-                    int k;
-                    for(k=i; shots[k]; k++){
-                        shots[k] = shots[k+1];
-                    }
-                    i--;
+                    s = shots.erase(s);
                     break;
                 }
             }
@@ -136,12 +110,7 @@ namespace bots {
             if(abs(start_x - s->x) > dx * 2 || abs(start_y - s->y) > dy * 2) {
                 /* we moved a long way...assume we wrapped around the edge */
                 /* delete shot */
-                free(s);
-                int k;
-                for(k=i; shots[k]; k++){
-                    shots[k] = shots[k+1];
-                }
-                i--;
+                s = shots.erase(s);
                 continue;
             }
 
@@ -154,27 +123,27 @@ namespace bots {
                    && bots[j]->tank->health > 0
                 ){
                     /* hit! */
-                    add_event(BOTS_EVENT_HIT, j);
+                    hit = 1;
+                    add_event(World::Event::Type::hit, j);
 
                     /* record damage */
                     bots[j]->tank->health -= 10;
                     if(bots[j]->tank->health <= 0) {
                         bots[j]->tank->health = 0;
-                        add_event(BOTS_EVENT_DEATH, j);
+                        add_event(World::Event::Type::death, j);
                     }
 
                     /* delete the shot */
-                    free(s);
-                    int k;
-                    for(k=i; shots[k]; k++){
-                        shots[k] = shots[k+1];
-                    }
-                    i--;
+                    s = shots.erase(s);
                 }
             }
+            if (hit)
+                continue;
+
+            s++;
         }
         /* bots */
-        for(i=0; i < bots.size(); i++){
+        for(int i=0; i < bots.size(); i++){
             if(bots[i]->tank->health <= 0)
                 continue;
             /* turn, etc */
@@ -255,28 +224,28 @@ namespace bots {
                 continue;
 
             /** write I/O ports to CPU **/
-            for(int j=0; bots[i]->tank->peripherals[j].mem_base != 0; j++)
-                bots[i]->tank->peripherals[j].process_tick(
-                        bots[i]->tank->peripherals + j, this, i, 1);
+            for(int j=0; bots[i]->peripherals[j].mem_base != 0; j++)
+                bots[i]->peripherals[j].process_tick(
+                        bots[i]->peripherals + j, this, i, 1);
 
             /** run CPU cycles **/
             for(int j=0; j<options.cpus_per_tick; j++)
                 bots_cpu_cycle(bots[i]->cpu);
 
             /** read I/O ports from CPU **/
-            for(int j=0; bots[i]->tank->peripherals[j].mem_base != 0; j++)
-                bots[i]->tank->peripherals[j].process_tick(
-                        bots[i]->tank->peripherals + j, this, i, 0);
+            for(int j=0; bots[i]->peripherals[j].mem_base != 0; j++)
+                bots[i]->peripherals[j].process_tick(
+                        bots[i]->peripherals + j, this, i, 0);
         }
     }
 
-    bots_events *World::tick() {
-        _tick_events->event_count = 0;
+    std::vector<World::Event> World::tick() {
+        tick_events.clear();
 
         _physics_tick();
         _process_tick();
 
-        return _tick_events;
+        return tick_events;
     }
 
     void World::place_bots() {
