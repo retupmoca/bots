@@ -11,6 +11,7 @@
 #include <cmath>
 
 namespace bots {
+    // class Bot
     std::unique_ptr<Bot> Bot::build(World &world, std::vector<uint8_t> &data) {
         bots_cpu* cpu = (bots_cpu*)calloc(1, sizeof(bots_cpu));
         bots_tank* tank = (bots_tank*)calloc(1, sizeof(bots_tank));
@@ -52,7 +53,10 @@ namespace bots {
         std::ifstream f{filename, std::ios::in | std::ios::binary};
         return build(world, f);
     }
+}
 
+namespace bots {
+    // class World
     World::World(Options options = {}) : options(options) {
         _tick_events = (bots_events*)malloc(sizeof(bots_events));
         _tick_events->events = (bots_event*)malloc(sizeof(bots_event));

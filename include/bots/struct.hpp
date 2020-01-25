@@ -9,8 +9,6 @@ extern "C" {
 
 #include <stdint.h>
 
-typedef struct _bots_world bots_world;
-
 typedef struct {
     /* cpu */
     uint16_t registers[12];
@@ -115,26 +113,8 @@ typedef struct {
     int _size;
 } bots_events;
 
-#define BOTS_MAX_COUNT 16
 /* we've got the memory... */
 #define BOTS_SHOTS_MAX_COUNT (16*1024)
-
-struct _bots_world {
-    uint8_t num_tanks;
-    bots_cpu* cpus[BOTS_MAX_COUNT];
-    bots_tank* tanks[BOTS_MAX_COUNT];
-    bots_shot* shots[BOTS_SHOTS_MAX_COUNT];
-    long long next_shot_id;
-
-    uint8_t c_cpus_per_tick;
-    int32_t c_spawn_distance;
-
-    uint16_t c_hull_turn_rate;
-    uint16_t c_turret_turn_rate;
-    uint16_t c_scanner_turn_rate;
-    
-    bots_events* _tick_events;
-};
 
 #ifdef __cplusplus
 }
