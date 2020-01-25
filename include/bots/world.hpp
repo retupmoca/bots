@@ -1,12 +1,10 @@
 #pragma once
 
+#include <vector>
+#include <memory>
 #include <cstdint>
 
 #include <bots/struct.hpp>
-
-#if 0
-#include <include/bots/tank>
-#endif
 
 namespace bots {
     //class Shot {
@@ -17,6 +15,24 @@ namespace bots {
     //    Tank &from;
     //    long long id;
     //};
+    class World;
+
+    class Bot {
+        public:
+        World &world;
+        bots_cpu *cpu;
+        bots_tank *tank;
+
+        static std::unique_ptr<Bot> build(World &world, const std::string &filename);
+        static std::unique_ptr<Bot> build(World &world, std::istream &handle);
+        static std::unique_ptr<Bot> build(World &world, std::vector<uint8_t> &data);
+
+        Bot(World &world, bots_cpu *cpu, bots_tank *tank) : world(world), cpu(cpu), tank(tank) {}
+        ~Bot() {
+            free(cpu);
+            free(tank);
+        }
+    };
 
     class World {
         public:
@@ -36,24 +52,31 @@ namespace bots {
 
             Options options;
 
-            uint8_t num_tanks;
-
-            bots_cpu *cpus[BOTS_MAX_COUNT];
-            bots_tank *tanks[BOTS_MAX_COUNT];
-            bots_shot *shots[BOTS_SHOTS_MAX_COUNT];
-            //std::vector<Tank> tanks;
+            std::vector<std::unique_ptr<Bot>> bots;
             //std::list<Shot> shots;
             
             //World(std::vector<Tank> tanks, Options options = {});
             World(Options options);
             ~World();
 
+            template<typename ...Targs>
+            void add_bot(Targs...Fargs) {
+                bots.push_back(Bot::build(*this, Fargs...));
+            };
+
             //std::vector<Event> tick();
+
+            //uint8_t num_tanks;
+
+            /*bots_cpu *cpus[BOTS_MAX_COUNT];
+            bots_tank *tanks[BOTS_MAX_COUNT];*/
+            bots_shot *shots[BOTS_SHOTS_MAX_COUNT];
+
             bots_events *tick();
             void _physics_tick();
             void _process_tick();
             void add_event(uint8_t, uint8_t);
-            void add_bot(bots_cpu*, bots_tank*);
+            //void add_bot(bots_cpu*, bots_tank*);
             void place_bots();
 
         //private:

@@ -1,10 +1,58 @@
 #include <bots/cpu.hpp>
 #include <bots/world.hpp>
 
+#include <bots/peripherals.hpp>
+
+#include <iostream>
+#include <fstream>
+#include <iterator>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 
 namespace bots {
+    std::unique_ptr<Bot> Bot::build(World &world, std::vector<uint8_t> &data) {
+        bots_cpu* cpu = (bots_cpu*)calloc(1, sizeof(bots_cpu));
+        bots_tank* tank = (bots_tank*)calloc(1, sizeof(bots_tank));
+
+        tank->health = 100;
+        cpu->user_mem_max = 0xefff;
+        cpu->registers[10] = 0xefff;
+        memcpy(cpu->memory, &data[0], data.size());
+
+        tank->peripherals = (bots_peripheral*)calloc(5, sizeof(bots_peripheral));
+        tank->peripherals[0].mem_base = 0xfef0;
+        tank->peripherals[0].process_tick = &bots_peripheral_reset;
+        tank->peripherals[1].mem_base = 0xfee0;
+        tank->peripherals[1].process_tick = &bots_peripheral_radar;
+        tank->peripherals[2].mem_base = 0xfed0;
+        tank->peripherals[2].process_tick = &bots_peripheral_turret;
+        tank->peripherals[3].mem_base = 0xfec0;
+        tank->peripherals[3].process_tick = &bots_peripheral_hull;
+
+        return std::make_unique<Bot>(world, cpu, tank);
+    }
+
+    std::unique_ptr<Bot> Bot::build(World &world, std::istream &handle) {
+        std::vector<uint8_t> data;
+        uint8_t byte;
+        while(byte = handle.get(), handle.good()) {
+            data.push_back(byte);
+        }
+        // I want to do this, but it skips "whitespace" bytes...
+        //std::copy(
+        //    std::istream_iterator<uint8_t>(handle),
+        //    std::istream_iterator<uint8_t>(),
+        //    std::back_inserter(data)
+        //);
+        return build(world, data);
+    }
+
+    std::unique_ptr<Bot> Bot::build(World &world, const std::string &filename) {
+        std::ifstream f{filename, std::ios::in | std::ios::binary};
+        return build(world, f);
+    }
+
     World::World(Options options = {}) : options(options) {
         _tick_events = (bots_events*)malloc(sizeof(bots_events));
         _tick_events->events = (bots_event*)malloc(sizeof(bots_event));
@@ -14,12 +62,6 @@ namespace bots {
     }
 
     World::~World() {
-        int i;
-        for(i = 0; i < num_tanks; i++) {
-            free(tanks[i]);
-            free(cpus[i]);
-        }
-
         free(_tick_events->events);
         free(_tick_events);
     }
@@ -47,20 +89,21 @@ namespace bots {
             /* check collision */
             int hit = 0;
             int j;
-            for(j=0; j < num_tanks; j++){
-                if(   s->x >= tanks[j]->x - 40
-                   && s->x <= tanks[j]->x + 40
-                   && s->y >= tanks[j]->y - 40
-                   && s->y <= tanks[j]->y + 40
-               && tanks[j]->health > 0){
+            for(j=0; j < bots.size(); j++){
+                if(   s->x >= bots[j]->tank->x - 40
+                   && s->x <= bots[j]->tank->x + 40
+                   && s->y >= bots[j]->tank->y - 40
+                   && s->y <= bots[j]->tank->y + 40
+                   && bots[j]->tank->health > 0
+                ){
                     /* hit! */
                     hit = 1;
                     add_event(BOTS_EVENT_HIT, j);
 
                     /* record damage */
-                    tanks[j]->health -= 10;
-                    if(tanks[j]->health <= 0) {
-                        tanks[j]->health = 0;
+                    bots[j]->tank->health -= 10;
+                    if(bots[j]->tank->health <= 0) {
+                        bots[j]->tank->health = 0;
                         add_event(BOTS_EVENT_DEATH, j);
                     }
 
@@ -99,19 +142,20 @@ namespace bots {
             }
 
             /* check collision again */
-            for(j=0; j < num_tanks; j++){
-                if(   s->x >= tanks[j]->x - 40
-                   && s->x <= tanks[j]->x + 40
-                   && s->y >= tanks[j]->y - 40
-                   && s->y <= tanks[j]->y + 40
-               && tanks[j]->health > 0){
+            for(j=0; j < bots.size(); j++){
+                if(   s->x >= bots[j]->tank->x - 40
+                   && s->x <= bots[j]->tank->x + 40
+                   && s->y >= bots[j]->tank->y - 40
+                   && s->y <= bots[j]->tank->y + 40
+                   && bots[j]->tank->health > 0
+                ){
                     /* hit! */
                     add_event(BOTS_EVENT_HIT, j);
 
                     /* record damage */
-                    tanks[j]->health -= 10;
-                    if(tanks[j]->health <= 0) {
-                        tanks[j]->health = 0;
+                    bots[j]->tank->health -= 10;
+                    if(bots[j]->tank->health <= 0) {
+                        bots[j]->tank->health = 0;
                         add_event(BOTS_EVENT_DEATH, j);
                     }
 
@@ -126,8 +170,8 @@ namespace bots {
             }
         }
         /* bots */
-        for(i=0; i < num_tanks; i++){
-            if(tanks[i]->health <= 0)
+        for(i=0; i < bots.size(); i++){
+            if(bots[i]->tank->health <= 0)
                 continue;
             /* turn, etc */
             short real_steering;
@@ -138,7 +182,7 @@ namespace bots {
             uint16_t scanner_steering;
             uint16_t steering_adjust;
 
-            steering = tanks[i]->_req_steering;
+            steering = bots[i]->tank->_req_steering;
 
             real_steering = steering;
             if(real_steering <= 512 && real_steering > options.hull_turn_rate){
@@ -147,25 +191,25 @@ namespace bots {
             if(real_steering > 512 && real_steering < (1024 - options.hull_turn_rate)){
                 real_steering = 1024 - options.hull_turn_rate;
             }
-            tanks[i]->_req_steering -= real_steering;
+            bots[i]->tank->_req_steering -= real_steering;
 
-            tanks[i]->heading = (tanks[i]->heading + real_steering) % 1024;
-            tanks[i]->speed = tanks[i]->_req_throttle;
-            if(tanks[i]->speed > 100)
-                tanks[i]->speed = 100;
+            bots[i]->tank->heading = (bots[i]->tank->heading + real_steering) % 1024;
+            bots[i]->tank->speed = bots[i]->tank->_req_throttle;
+            if(bots[i]->tank->speed > 100)
+                bots[i]->tank->speed = 100;
 
             /* drive! */
 
-            double rangle = (tanks[i]->heading) * M_PI / 512;
-            double dist = (tanks[i]->speed / 100.0) * 6.0;
+            double rangle = (bots[i]->tank->heading) * M_PI / 512;
+            double dist = (bots[i]->tank->speed / 100.0) * 6.0;
             int dy = floor(0.5 + (dist * cos(rangle)));
             int dx = floor(0.5 + (dist * sin(rangle)));
-            tanks[i]->x += dx;
-            tanks[i]->y += dy;
+            bots[i]->tank->x += dx;
+            bots[i]->tank->y += dy;
 
             /* turn turret */
-            turret_steering = tanks[i]->_req_turret_steering;
-            if(tanks[i]->_req_turret_keepshift) /* turret keepshift */
+            turret_steering = bots[i]->tank->_req_turret_steering;
+            if(bots[i]->tank->_req_turret_keepshift) /* turret keepshift */
                 turret_steering = (turret_steering + 1024 - real_steering) % 1024;
             turret_steering = turret_steering % 1024;
 
@@ -176,13 +220,13 @@ namespace bots {
             if(real_turret_steering > 512 && real_turret_steering < (1024 - options.turret_turn_rate)){
                 real_turret_steering = 1024 - options.turret_turn_rate;
             }
-            tanks[i]->_req_turret_steering -= real_turret_steering;
+            bots[i]->tank->_req_turret_steering -= real_turret_steering;
 
-            tanks[i]->turret_offset = (tanks[i]->turret_offset + real_turret_steering) % 1024;
+            bots[i]->tank->turret_offset = (bots[i]->tank->turret_offset + real_turret_steering) % 1024;
 
             /* turn scanner */
-            scanner_steering = tanks[i]->_req_scanner_steering;
-            if(tanks[i]->_req_scanner_keepshift) /* scanner keepshift */
+            scanner_steering = bots[i]->tank->_req_scanner_steering;
+            if(bots[i]->tank->_req_scanner_keepshift) /* scanner keepshift */
                 scanner_steering = (scanner_steering + 1024 - real_steering) % 1024;
             scanner_steering = scanner_steering % 1024;
 
@@ -193,32 +237,32 @@ namespace bots {
             if(real_scanner_steering > 512 && real_scanner_steering < (1024 - options.scanner_turn_rate)) {
                 real_scanner_steering = 1024 - options.scanner_turn_rate;
             }
-            tanks[i]->_req_scanner_steering -= real_scanner_steering;
+            bots[i]->tank->_req_scanner_steering -= real_scanner_steering;
 
-            tanks[i]->scanner_offset = (tanks[i]->scanner_offset + real_scanner_steering) % 1024;
+            bots[i]->tank->scanner_offset = (bots[i]->tank->scanner_offset + real_scanner_steering) % 1024;
         }
 
     }
 
     void World::_process_tick() {
         int i;
-        for(i=0; i < num_tanks; i++){
-            if(tanks[i]->health <= 0)
+        for(i=0; i < bots.size(); i++){
+            if(bots[i]->tank->health <= 0)
                 continue;
 
             /** write I/O ports to CPU **/
-            for(int j=0; tanks[i]->peripherals[j].mem_base != 0; j++)
-                tanks[i]->peripherals[j].process_tick(
-                        tanks[i]->peripherals + j, this, i, 1);
+            for(int j=0; bots[i]->tank->peripherals[j].mem_base != 0; j++)
+                bots[i]->tank->peripherals[j].process_tick(
+                        bots[i]->tank->peripherals + j, this, i, 1);
 
             /** run CPU cycles **/
             for(int j=0; j<options.cpus_per_tick; j++)
-                bots_cpu_cycle(cpus[i]);
+                bots_cpu_cycle(bots[i]->cpu);
 
             /** read I/O ports from CPU **/
-            for(int j=0; tanks[i]->peripherals[j].mem_base != 0; j++)
-                tanks[i]->peripherals[j].process_tick(
-                        tanks[i]->peripherals + j, this, i, 0);
+            for(int j=0; bots[i]->tank->peripherals[j].mem_base != 0; j++)
+                bots[i]->tank->peripherals[j].process_tick(
+                        bots[i]->tank->peripherals + j, this, i, 0);
         }
     }
 
@@ -231,28 +275,18 @@ namespace bots {
         return _tick_events;
     }
 
-    void World::add_bot(bots_cpu *m, bots_tank *p) {
-        if(num_tanks == BOTS_MAX_COUNT){
-            return;
-        }
-        m->bot_id = num_tanks;
-        cpus[num_tanks] = m;
-        tanks[num_tanks] = p;
-        num_tanks++;
-    }
-
     void World::place_bots() {
         int32_t spawn_d = options.spawn_distance;
 
         double angle = 0;
-        double step = (2 * M_PI) / num_tanks;
+        double step = (2 * M_PI) / bots.size();
 
-        for(int i=0; i<num_tanks; i++) {
+        for(int i=0; i<bots.size(); i++) {
             /* set bot to location */
             int32_t loc_x = floor(0.5 + (spawn_d * cos(angle)));
             int32_t loc_y = floor(0.5 + (spawn_d * sin(angle)));
-            tanks[i]->x = loc_x;
-            tanks[i]->y = loc_y;
+            bots[i]->tank->x = loc_x;
+            bots[i]->tank->y = loc_y;
 
             /* rotate location to next spawn location */
             angle += step;
