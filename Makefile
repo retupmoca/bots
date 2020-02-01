@@ -13,8 +13,8 @@ asm : bin/bots_asm
 lib : lib/libbots.so
 
 # just rebuild everything on a header change, since we aren't tracking
-# dependencies for each .c file
-**/*.o : include/**/*.h
+# dependencies for each .cpp file
+**/*.o : include/**/*.hpp
 
 bin/bots : cli_src/main.o lib/libbots.so
 	$(CXX) $(CXXFLAGS) -o bin/bots -Llib cli_src/main.o -lbots -lfmt
@@ -34,6 +34,13 @@ install :
 	mkdir -p ${DESTDIR}/${PREFIX}/include
 	cp -r include/* ${DESTDIR}/${PREFIX}/include
 
+.PHONY : test
+test: test/test_runner
+	LD_LIBRARY_PATH=lib test/test_runner --verbose
+
+test/test_runner: lib/libbots.so test/cpu_ops.o
+	$(CXX) $(CXXFLAGS) -o test/test_runner -Llib test/cpu_ops.o -lbots -lcriterion
+
 .PHONY : clean
 clean :
-	rm -f asm_src/*o cli_src/*o src/*o bin/bots bin/bots_asm lib/*so
+	rm -f asm_src/*o cli_src/*o src/*o bin/bots bin/bots_asm lib/*so test/test_runner test/*o
