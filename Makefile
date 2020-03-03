@@ -22,8 +22,8 @@ bin/bots : cli_src/main.o lib/libbots.so
 bin/bots_asm : asm_src/main.o lib/libbots.so
 	$(CC) -g -o bin/bots_asm -Llib asm_src/main.o -lbots
 
-lib/libbots.so : src/ops.o src/cpu.o src/world.o src/peripherals.o
-	$(CXX) -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/peripherals.o -lm
+lib/libbots.so : src/ops.o src/cpu.o src/world.o src/peripherals.o src/physics.o
+	$(CXX) -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/peripherals.o src/physics.o
 
 .PHONY : install
 install :
