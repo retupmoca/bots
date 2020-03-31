@@ -9,6 +9,10 @@ class BotsEngine : public llm::Engine {
 public:
     bots::World *world;
 
+    void tick() override {
+        world->tick();
+    }
+
     BotsEngine() {
         tickRate = 1 / 60.0f;
     }
@@ -17,6 +21,26 @@ public:
 class BotsWindow : public llm::PixelDrawingWindow {
 public:
     BotsEngine *game;
+
+    void tick() override {
+        for(int x = 0; x < width; x++)
+            for(int y = 0; y < height; y++)
+                at(x, y).set(0, 0, 0);
+        bots::World *w = game->world;
+
+        int botax = w->bots[0]->tank->x/16 + width/2;
+        int botay = w->bots[0]->tank->y/16 + height/2;
+
+        if (w->bots[0]->tank->health > 0 && botax >= 0 && botax < width && botay >= 0 && botay < height)
+            at(botax, botay).set(255, 255, 255);
+
+        int botbx = w->bots[1]->tank->x/16 + width/2;
+        int botby = w->bots[1]->tank->y/16 + height/2;
+
+        if (w->bots[1]->tank->health > 0 && botbx >= 0 && botbx < width && botby >= 0 && botby < height)
+            at(botbx, botby).set(255, 255, 255);
+
+    }
 
     BotsWindow() {
         title = "Bots";
