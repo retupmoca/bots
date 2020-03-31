@@ -7,9 +7,10 @@ DESTDIR = ""
 LIBDIR = lib
 
 .PHONY : all cli asm lib
-all : bin/bots bin/bots_asm lib/libbots.so
+all : bin/bots bin/bots_asm bin/bots_gui lib/libbots.so
 cli : bin/bots
 asm : bin/bots_asm
+gui : bin/bots_gui
 lib : lib/libbots.so
 
 # just rebuild everything on a header change, since we aren't tracking
@@ -21,6 +22,9 @@ bin/bots : cli_src/main.o lib/libbots.so
 
 bin/bots_asm : asm_src/main.o lib/libbots.so
 	$(CC) -g -o bin/bots_asm -Llib asm_src/main.o -lbots
+
+bin/bots_gui : gui_src/main.o lib/libbots.so
+	$(CXX) $(CXXFLAGS) -o bin/bots_gui -Llib gui_src/main.o -lbots -lfmt -lglfw -lGL -lpthread
 
 lib/libbots.so : src/ops.o src/cpu.o src/world.o src/peripherals.o
 	$(CXX) -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/peripherals.o -lm
