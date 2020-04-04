@@ -103,7 +103,7 @@ namespace bots {
             int32_t start_y = s->y;
             s->x += dx;
             s->y += dy;
-            if(abs(start_x - s->x) > dx * 2 || abs(start_y - s->y) > dy * 2) {
+            if(abs(start_x - s->x) > abs(dx) * 2 || abs(start_y - s->y) > abs(dy) * 2) {
                 /* we moved a long way...assume we wrapped around the edge */
                 /* delete shot */
                 s = shots.erase(s);

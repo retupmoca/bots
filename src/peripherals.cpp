@@ -180,13 +180,13 @@ namespace bots {
             };
             
             /* get global heading of gun */
-            s.heading = tank.heading + tank.turret_offset;
+            s.heading = (tank.heading + tank.turret_offset) % 1024;
             
             /* move just far enough that we don't hit ourselves */
             s.x = tank.x;
             s.y = tank.y;
                 
-            double rangle = s.heading * M_PI / 1024;
+            double rangle = s.heading * M_PI / 512;
             int dist = 60;
             int dy = floor(0.5 + (dist * cos(rangle)));
             int dx = floor(0.5 + (dist * sin(rangle)));
