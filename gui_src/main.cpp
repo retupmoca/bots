@@ -26,19 +26,21 @@ public:
         frame->clear(llm::color::BLACK);
         bots::World *w = game->world;
 
-        int botax = w->bots[0]->tank->x/16 + frame->width/2;
-        int botay = w->bots[0]->tank->y/16 + frame->height/2;
+        const int32_t SCALE = 8;
+
+        int botax = w->bots[0]->tank->x/SCALE + frame->width/2;
+        int botay = w->bots[0]->tank->y/SCALE + frame->height/2;
 
         frame->rectDraw(botax - 3, botay - 3, 7, 7, llm::color::WHITE);
 
-        int botbx = w->bots[1]->tank->x/16 + frame->width/2;
-        int botby = w->bots[1]->tank->y/16 + frame->height/2;
+        int botbx = w->bots[1]->tank->x/SCALE + frame->width/2;
+        int botby = w->bots[1]->tank->y/SCALE + frame->height/2;
 
         frame->rectDraw(botbx - 3, botby - 3, 7, 7, llm::color::WHITE);
 
         for (auto &shot : w->shots) {
-            int sx = shot.x/16 + frame->width/2;
-            int sy = shot.y/16 + frame->height/2;
+            int sx = shot.x/SCALE + frame->width/2;
+            int sy = shot.y/SCALE + frame->height/2;
             frame->rectDraw(sx-1, sy-1, 3, 3, llm::color::RED);
         }
     }
