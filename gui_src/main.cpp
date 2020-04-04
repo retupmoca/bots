@@ -18,35 +18,36 @@ public:
     }
 };
 
-class BotsWindow : public llm::PixelDrawingWindow {
+class BotsWindow : public llm::FramebufferWindow {
 public:
     BotsEngine *game;
 
     void tick() override {
-        for(int x = 0; x < width; x++)
-            for(int y = 0; y < height; y++)
-                at(x, y).set(0, 0, 0);
+        frame->clear(llm::color::BLACK);
         bots::World *w = game->world;
 
-        int botax = w->bots[0]->tank->x/16 + width/2;
-        int botay = w->bots[0]->tank->y/16 + height/2;
+        int botax = w->bots[0]->tank->x/16 + frame->width/2;
+        int botay = w->bots[0]->tank->y/16 + frame->height/2;
 
-        if (w->bots[0]->tank->health > 0 && botax >= 0 && botax < width && botay >= 0 && botay < height)
-            at(botax, botay).set(255, 255, 255);
+        frame->rectDraw(botax - 3, botay - 3, 7, 7, llm::color::WHITE);
 
-        int botbx = w->bots[1]->tank->x/16 + width/2;
-        int botby = w->bots[1]->tank->y/16 + height/2;
+        int botbx = w->bots[1]->tank->x/16 + frame->width/2;
+        int botby = w->bots[1]->tank->y/16 + frame->height/2;
 
-        if (w->bots[1]->tank->health > 0 && botbx >= 0 && botbx < width && botby >= 0 && botby < height)
-            at(botbx, botby).set(255, 255, 255);
+        frame->rectDraw(botbx - 3, botby - 3, 7, 7, llm::color::WHITE);
 
+        for (auto &shot : w->shots) {
+            int sx = shot.x/16 + frame->width/2;
+            int sy = shot.y/16 + frame->height/2;
+            frame->rectDraw(sx-1, sy-1, 3, 3, llm::color::RED);
+        }
     }
 
     BotsWindow() {
         title = "Bots";
-        width = 640;
-        height = 480;
+        frame = new llm::Framebuffer(960, 540);
         vsync = true;
+        showFPS = false;
     }
 };
 
