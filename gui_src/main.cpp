@@ -21,6 +21,8 @@ public:
 class BotsWindow : public llm::FramebufferWindow {
 public:
     BotsEngine *game;
+    llm::Framebuffer *tankSprite;
+    llm::Framebuffer *turretSprite;
 
     void tick() override {
         frame->clear(llm::color::BLACK);
@@ -28,15 +30,31 @@ public:
 
         const int32_t SCALE = 8;
 
-        int botax = w->bots[0]->tank->x/SCALE + frame->width/2;
-        int botay = w->bots[0]->tank->y/SCALE + frame->height/2;
+        for (auto &bot : w->bots) {
+            int botx = bot->tank->x/SCALE + frame->width/2;
+            int boty = bot->tank->y/SCALE + frame->height/2;
 
-        frame->rectDraw(botax - 3, botay - 3, 7, 7, llm::color::WHITE);
+            //frame->rectDraw(botx - 3, boty - 3, 7, 7, llm::color::WHITE);
+            using llm::Affine;
 
-        int botbx = w->bots[1]->tank->x/SCALE + frame->width/2;
-        int botby = w->bots[1]->tank->y/SCALE + frame->height/2;
+            Affine t;
+            t.add(Affine::Translate(-480, -205));
+            //t.add(Affine::Rotate(M_PI));
+            double heading_rad = (bot->tank->heading) * M_PI / 512;
+            t.add(Affine::Rotate(heading_rad));
+            t.add(Affine::Scale(0.1));
+            t.add(Affine::Translate(botx, boty));
+            frame->blit(tankSprite, t);
 
-        frame->rectDraw(botbx - 3, botby - 3, 7, 7, llm::color::WHITE);
+            Affine t2;
+            t2.add(Affine::Translate(-480, -205));
+            //t.add(Affine::Rotate(M_PI));
+            double theading_rad = (bot->tank->turret_offset + bot->tank->heading) * M_PI / 512;
+            t2.add(Affine::Rotate(theading_rad));
+            t2.add(Affine::Scale(0.1));
+            t2.add(Affine::Translate(botx, boty));
+            frame->blit(turretSprite, t2);
+        }
 
         for (auto &shot : w->shots) {
             int sx = shot.x/SCALE + frame->width/2;
@@ -48,8 +66,16 @@ public:
     BotsWindow() {
         title = "Bots";
         frame = new llm::Framebuffer(960, 540);
+        tankSprite = new llm::Framebuffer("gui_assets/tankbody.png");
+        turretSprite = new llm::Framebuffer("gui_assets/tankturret.png");
         vsync = true;
         showFPS = false;
+    }
+
+    ~BotsWindow() {
+        delete frame;
+        delete tankSprite;
+        delete turretSprite;
     }
 };
 

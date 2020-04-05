@@ -23,8 +23,9 @@ bin/bots : cli_src/main.o lib/libbots.so
 bin/bots_asm : asm_src/main.o lib/libbots.so
 	$(CC) -g -o bin/bots_asm -Llib asm_src/main.o -lbots
 
+gui_src/main.o : gui_src/*.hpp
 bin/bots_gui : gui_src/main.o lib/libbots.so
-	$(CXX) $(CXXFLAGS) -o bin/bots_gui -Llib gui_src/main.o -lbots -lfmt -lglfw -lGL -lpthread
+	$(CXX) $(CXXFLAGS) -o bin/bots_gui -Llib gui_src/main.o -lbots -lfmt -lglfw -lGL -lpthread -lpng
 
 lib/libbots.so : src/ops.o src/cpu.o src/world.o src/peripherals.o
 	$(CXX) -g -shared -o lib/libbots.so src/ops.o src/cpu.o src/world.o src/peripherals.o -lm
@@ -47,4 +48,4 @@ test/test_runner: lib/libbots.so test/cpu_ops.o
 
 .PHONY : clean
 clean :
-	rm -f asm_src/*o cli_src/*o src/*o bin/bots bin/bots_asm lib/*so test/test_runner test/*o
+	rm -f asm_src/*o cli_src/*o gui_src/*o src/*o bin/bots bin/bots_asm bin/bots_gui lib/*so test/test_runner test/*o

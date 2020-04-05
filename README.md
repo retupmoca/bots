@@ -4,6 +4,11 @@ I want a modern version of the atrobots programming game, but don't really know 
 
 (http://necrobones.com/atrobots/)
 
+```
+$ make
+$ LD_LIBRARY_PATH=lib bin/bots testbot.bc testbot.bc
+```
+
 # units
 
 Consider one "distance unit" to be one mm
