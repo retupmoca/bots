@@ -1,5 +1,5 @@
 CFLAGS = -g -fPIC -Iinclude
-CXXFLAGS = -g -fPIC -Iinclude -std=c++2a
+CXXFLAGS = -O2 -fPIC -Iinclude -std=c++2a
 
 PREFIX = /usr/local
 DESTDIR = ""

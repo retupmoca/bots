@@ -238,6 +238,7 @@ namespace llm {
             {
                 int tx, ty;
                 transform.map(fromX, fromY, x1, y1);
+                x2 = x1; y2 = y1;
                 transform.map(fromX + fromW, fromY, tx, ty);
                 x1 = std::min(x1, tx); x2 = std::max(x2, tx);
                 y1 = std::min(y1, ty); y2 = std::max(y2, ty);
