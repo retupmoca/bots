@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fmt/format.h>
+#include <mutex>
+#include <queue>
 
 #include <bots.hpp>
 #include "window.hpp"
@@ -9,8 +11,17 @@ class BotsEngine : public llm::Engine {
 public:
     bots::World *world;
 
+    std::mutex displayLock;
+    std::queue<bots::World::Event> displayEvents;
+
     void tick() override {
-        world->tick();
+        auto tickEvents = world->tick();
+
+        displayLock.lock();
+        for (auto &event : tickEvents) {
+            displayEvents.push(event);
+        }
+        displayLock.unlock();
     }
 
     BotsEngine() {
@@ -61,6 +72,15 @@ public:
             int sy = shot.y/SCALE + frame->height/2;
             frame->rectDraw(sx-1, sy-1, 3, 3, llm::color::RED);
         }
+
+        game->displayLock.lock();
+        while(!game->displayEvents.empty()) {
+            auto event = game->displayEvents.front();
+            game->displayEvents.pop();
+
+            // do a thing with event
+        }
+        game->displayLock.unlock();
     }
 
     BotsWindow() {
