@@ -1,4 +1,4 @@
-/* rev b96444a1f9ff4deca61a5cc503849db879838a43 */
+/* rev 2ee34e61fb891e379c04fab7e363579f9c182585 */
 #include <GLFW/glfw3.h>
 #include <png.h>
 #include <fmt/format.h>
@@ -56,6 +56,7 @@ namespace llm {
                     0, sy, 0,
                     0, 0, 1};
         }
+        // TODO: skew?
 
     public:
         mat3 matrix;
@@ -122,33 +123,53 @@ namespace llm {
         const pixel BLUE = {0x0, 0x0, 0xff};
     };
 
+    /* as a rule, bounds-checking in Framebuffer should do nothing on a write,
+     * and read color::CLEAR on a get.
+     */
+    // TODO: draw text
     class Framebuffer {
     public:
         pixel *pixels = nullptr;
         int width = 0, height = 0;
 
         Framebuffer(int width, int height) {
+            if(width <= 0 || height <= 0)
+                throw std::domain_error("framebuffer width/height must be positive");
             this->width = width;
             this->height = height;
             pixels = new pixel[width * height];
         }
 
         Framebuffer(std::string filename) {
-            png_image image; /* The control structure used by libpng */
+            png_image image = { 0 }; /* The control structure used by libpng */
 
-            /* Initialize the 'png_image' structure. */
-            memset(&image, 0, (sizeof image));
             image.version = PNG_IMAGE_VERSION;
 
-            png_image_begin_read_from_file(&image, filename.c_str());
-            png_bytep buffer;
+            if (!png_image_begin_read_from_file(&image, filename.c_str()))
+                throw std::runtime_error("libpng image_begin_read_from_file failed");
             image.format = PNG_FORMAT_RGBA;
-            // buffer = malloc(PNG_IMAGE_SIZE(image));
             width = image.width;
             height = image.height;
             pixels = new pixel[width * height];
-            png_image_finish_read(&image, NULL/*background*/, pixels,
-                                  0/*row_stride*/, NULL/*colormap*/);
+            if (!png_image_finish_read(&image, NULL/*background*/, pixels,
+                                       0/*row_stride*/, NULL/*colormap*/)) {
+                png_image_free(&image);
+                delete pixels;
+                throw std::runtime_error("libpng image_finish_read failed");
+            }
+        }
+
+        void save(std::string filename) {
+            png_image image = { 0 }; /* The control structure used by libpng */
+
+            image.version = PNG_IMAGE_VERSION;
+            image.format = PNG_FORMAT_RGBA;
+            image.width = width;
+            image.height = height;
+
+            if (!png_image_write_to_file(&image, filename.c_str(), 0/*convert_to_8bit*/,
+                                         pixels, 0/*row_stride*/, NULL/*colormap*/))
+                throw std::runtime_error("libpng image_write_to_file failed");
         }
 
         ~Framebuffer() {
@@ -156,8 +177,26 @@ namespace llm {
                 delete pixels;
         }
 
-        pixel& at(int x, int y) {
+        pixel& _at(int x, int y) {
             return pixels[x + y*width];
+        }
+        pixel& at(int x, int y) {
+            if (x < 0 || x >= width || y < 0 || y >= height)
+                throw std::out_of_range("Invalid x/y");
+            return _at(x, y);
+        }
+
+        pixel get(int x, int y) {
+            if (x < 0 || x >= width || y < 0 || y >= height)
+                return color::CLEAR;
+            return _at(x, y);
+        }
+
+        template<typename... Targs>
+        void set(int x, int y, Targs... Fargs) {
+            if (x < 0 || x >= width || y < 0 || y >= height)
+                return;
+            _at(x, y).set(Fargs...);
         }
 
         void clear(pixel p) {
@@ -199,10 +238,114 @@ namespace llm {
                         std::fill(pixels + x + i*width, pixels + x + w + i*width, p);
                     else {
                         if (x == startX)
-                            at(x, i).set(p);
+                            _at(x, i).set(p);
                         if (x + w == endX)
-                            at(x + w - 1, i).set(p);
+                            _at(x + w - 1, i).set(p);
                     }
+        }
+
+        void lineDraw(int x, int y, int w, int h, pixel p) {
+            float slope = (float)h / w;
+
+            if (slope > 1 || slope < -1) {
+                if (h < 0) {
+                    w = -w;
+                    x -= w;
+                    h = -h;
+                    y -= h;
+                }
+                slope = (float)w / h;
+                for (int j=0; j<h; ++j) {
+                    if ((y + j) < 0 || (y + j) >= height)
+                        continue;
+                    int i = slope * j;
+                    if ((x + i) < 0 || (x + i) >= width)
+                        continue;
+
+                    set(x+i,y+j, p);
+                }
+            }
+            else {
+                if (w < 0) {
+                    w = -w;
+                    x -= w;
+                    h = -h;
+                    y -= h;
+                }
+                for (int i=0; i<w; ++i) {
+                    if ((x + i) < 0 || (x + i) >= width)
+                        continue;
+                    int j = slope * i;
+                    if ((y + j) < 0 || (y + j) >= height)
+                        continue;
+
+                    set(x+i,y+j, p);
+                }
+            }
+        }
+
+        //TODO: this works very poorly. In fact, it barely works at all.
+        void arcFill(int x, int y, int r, float start, float end, pixel p) {
+            int sx = floor(0.5 + (r * cos(start))) + x;
+            int sy = floor(0.5 + (r * sin(start))) + y;
+            int ex = floor(0.5 + (r * cos(end))) + x;
+            int ey = floor(0.5 + (r * sin(end))) + y;
+            using std::abs;
+            
+            do {
+                lineDraw(x, y, sx - x, sy - y, p);
+
+                int dx = sx - x, dy = sy - y;
+                
+                if (abs(dy) > abs(dx) && dy < abs(dx)) {
+                    //north side
+                    sx--; sy = -sqrtf(r * r - (sx - x) * (sx - x)) + y;
+                }
+                else if (abs(dy) <= abs(dx) && dx > abs(dy)) {
+                    // east side
+                    sy--; sx = sqrtf(r * r - (sy - y) * (sy - y)) + x;
+                }
+                else if (abs(dy) > abs(dx) && dy > -abs(dx)) {
+                    // south side
+                    sx++; sy = sqrtf(r * r - (sx - x) * (sx - x)) + y;
+                }
+                else {
+                    // west side
+                    sy++; sx = -sqrtf(r * r - (sy - y) * (sy - y)) + x;
+                }
+            } while(sx != ex || sy != ey); 
+        }
+
+        void arcDraw(int x, int y, int r, float start, float end, pixel p) {
+            int sx = floor(0.5 + (r * cos(start))) + x;
+            int sy = floor(0.5 + (r * sin(start))) + y;
+            int ex = floor(0.5 + (r * cos(end))) + x;
+            int ey = floor(0.5 + (r * sin(end))) + y;
+            using std::abs;
+            
+            do {
+                if(sx > 0 && sy > 0 && sx < width && sy < height)
+                    set(sx, sy, p);
+
+                int dx = sx - x, dy = sy - y;
+                
+                if (abs(dy) > abs(dx) && dy < abs(dx)) {
+                    //north side
+                    sx--; sy = -sqrtf(r * r - (sx - x) * (sx - x)) + y;
+                }
+                else if (abs(dy) <= abs(dx) && dx > abs(dy)) {
+                    // east side
+                    sy--; sx = sqrtf(r * r - (sy - y) * (sy - y)) + x;
+                }
+                else if (abs(dy) > abs(dx) && dy > -abs(dx)) {
+                    // south side
+                    sx++; sy = sqrtf(r * r - (sx - x) * (sx - x)) + y;
+                }
+                else {
+                    // west side
+                    sy++; sx = -sqrtf(r * r - (sy - y) * (sy - y)) + x;
+                }
+            } while(sx != ex || sy != ey); 
         }
 
         void blit(Framebuffer *from, int x, int y) {
@@ -215,13 +358,13 @@ namespace llm {
                 int ox = x - startX + fromX, oy = y - startY + fromY;
                 for (int i = y; i < y+h; ++i) {
                     for (int j = x; j < x+w; ++j) {
-                        auto &fp = from->at(j + ox, i + oy);
+                        pixel fp = from->get(j + ox, i + oy);
                         if (fp.a == 0xff)
                             at(j, i).set(fp);
                         else if (fp.a > 0) {
                             auto &tp = at(j, i);
                             float mix = fp.a / 255.0f;
-                            // TODO
+                            // TODO: blend things
                             //tp.set(, 0, 0, 0xff);
                         }
                     }
@@ -232,6 +375,7 @@ namespace llm {
         void blit(Framebuffer *from, Affine transform) {
             blit(from, 0, 0, from->width, from->height, transform);
         }
+        //TODO: *maybe* an optional "to" location to allow reusing transforms more easily?
         void blit(Framebuffer *from, int fromX, int fromY, int fromW, int fromH, Affine transform) {
             // generate bounding box
             int x1, y1, x2, y2;
@@ -252,22 +396,21 @@ namespace llm {
             int w = x2 - x1;
             int h = y2 - y1;
 
-            //rectFill(x1, y1, w, h, color::GREEN);
-
             // do the blit
             if(_clipRect(x1, y1, w, h))
-                for (int i=x1; i<x1+w; ++i)
-                    for (int j=y1; j<y1+h; ++j) {
+                for (int j=y1; j<y1+h; ++j)
+                    for (int i=x1; i<x1+w; ++i)
+                    {
                         int x, y;
                         transform.mapInverse(i, j, x, y);
                         if (x > fromX && y > fromY && x < fromX + fromW && y < fromY + fromH) {
-                            auto &fp = from->at(x, y);
+                            auto &fp = from->_at(x, y);
                             if (fp.a == 0xff)
-                                at(i, j).set(fp);
+                                _at(i, j).set(fp);
                             else if (fp.a > 0) {
-                                auto &tp = at(i, j);
+                                auto &tp = _at(i, j);
                                 float mix = fp.a / 255.0f;
-                                // TODO
+                                // TODO: blend things
                                 //tp.set(, 0, 0, 0xff);
                             }
                         }
@@ -275,6 +418,10 @@ namespace llm {
         }
     };
 
+    //TODO: gl and glfw exceptions
+    //TODO: fullscreen?
+    //TODO: support replacing frame after startup / changing frame size
+    //TODO: mouse callbacks
     class FramebufferWindow {
     private:
         GLuint glBuffer;
@@ -291,12 +438,17 @@ namespace llm {
 
         static void rawResizeCallback(GLFWwindow *window, int width, int height) {
             FramebufferWindow *me = (FramebufferWindow*)glfwGetWindowUserPointer(window);
+            me->resizeEvent(width, height);
             me->needsResize = true;
         }
 
+        virtual void resizeEvent(int width, int height) { }
         virtual void keyboardEvent(int key, int scancode, int action, int mods) { }
 
         void mainLoop() {
+            if (!frame)
+                throw std::domain_error("Must set framebuffer before starting window");
+
             glfwInit();
          
             window = glfwCreateWindow(
@@ -395,8 +547,7 @@ namespace llm {
         FramebufferWindow() { }
 
         void start() {
-            if (frame)
-                thread = new std::thread(threadMain, this);
+            thread = new std::thread(threadMain, this);
         }
 
         void wait() {

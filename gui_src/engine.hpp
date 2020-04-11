@@ -1,7 +1,8 @@
-/* rev 59af3dc3dafbcb0bf801e70b2d74ce8e5e11a0fa */
+/* rev 2ee34e61fb891e379c04fab7e363579f9c182585 */
 #include <thread>
 
 namespace llm {
+    //TODO: non-fixed ticks?
     class Engine {
     private:
         std::thread *thread = nullptr;

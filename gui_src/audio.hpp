@@ -1,12 +1,27 @@
-/* rev 59af3dc3dafbcb0bf801e70b2d74ce8e5e11a0fa */
+/* rev 2ee34e61fb891e379c04fab7e363579f9c182585 */
 #include <cstdint>
 #include <portaudio.h>
 
 namespace llm {
-    class Audio {
+    class Sound {
+    public:
+        float volume = 1.0;
+
+        virtual void sample(float &left, float &right) {
+            tick(left, right);
+            left *= volume;
+            right *= volume;
+        }
+
+        virtual void tick(float &left, float &right) { left = right = 0; }
+    };
+
+    // TODO: SoundBus with an output volume?
+
+    // TODO: exceptions on portaudio failures
+    class SoundCard : public Sound {
     private:
         PaStream *stream = nullptr;
-        uint64_t _tick = 0;
 
         static int callback( const void *inputBuffer, void *outputBuffer,
                                    unsigned long framesPerBuffer,
@@ -15,7 +30,7 @@ namespace llm {
                                    void *userData )
         {
             /* Cast data passed through stream to our structure. */
-            Audio *data = (Audio*)userData;
+            SoundCard *data = (SoundCard*)userData;
             float *out = (float*)outputBuffer;
             unsigned int i;
             (void) inputBuffer; /* Prevent unused variable warning. */
@@ -25,7 +40,7 @@ namespace llm {
                 float left = 0.0f;
                 float right = 0.0f;
 
-                data->tick(left, right, data->_tick++);
+                data->sample(left, right);
 
                 *out++ = left;
                 *out++ = right;
@@ -34,7 +49,7 @@ namespace llm {
         }
 
     public:
-        Audio() {
+        SoundCard() {
             Pa_Initialize();
             Pa_OpenDefaultStream( &stream,
                                 0,          /* no input channels */
@@ -42,7 +57,7 @@ namespace llm {
                                 paFloat32,  /* 32 bit floating point output */
                                 48000,      /* sample rate */
                                 512,        /* frames per buffer */
-                                &Audio::callback,
+                                &SoundCard::callback,
                                 this);
         }
 
@@ -51,15 +66,12 @@ namespace llm {
         }
         void wait() {}
 
-        ~Audio() {
+        ~SoundCard() {
             if (stream) {
                 Pa_StopStream(stream);
                 Pa_CloseStream(stream);
             }
             Pa_Terminate();
         }
-
-        virtual void tick(float &left, float &right, uint64_t globalTick) { tick(left, right); }
-        virtual void tick(float &left, float &right) { left = right = 0; }
     };
 };
