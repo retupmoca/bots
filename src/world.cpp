@@ -7,6 +7,26 @@
 #include <cmath>
 
 namespace bots {
+    // physics bits
+    PhysicsObject::PhysicsObject(World &w) : world(w) {
+        w.physics_objects.push_back(this);
+    }
+
+    std::vector<PhysicsObject&> PhysicsObject::collisions() {
+        // TODO
+        // https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection
+        // calculate my 2 axis, project points onto them
+        for (auto &o : world.physics_objects) {
+            // TODO
+            // calculate 2 axis
+            // project points onto all 4 axis
+            // project original object onto my 2 axis
+            // compare all projections - if any non-overlap, no collision
+        }
+    }
+}
+
+namespace bots {
     // class Bot
     std::unique_ptr<Bot> Bot::build(World &world, std::vector<uint8_t> &data) {
         auto cpu = std::make_unique<Cpu>();

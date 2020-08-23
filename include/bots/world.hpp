@@ -9,14 +9,55 @@
 
 namespace bots {
     class World;
+    class Shot;
 
-    class Tank {
+    class PhysicsObject {
         public:
-            int32_t x;
-            int32_t y;
+            World &world;
+            
+            // location
+            int32_t x = 0;
+            int32_t y = 0;
 
-            uint32_t heading;
-            int32_t speed;
+            // size
+            int32_t w = 0;
+            int32_t h = 0;
+
+            // speed vector
+            int32_t sx = 0;
+            int32_t sy = 0;
+
+            // facing vector
+            int32_t fx = 0;
+            int32_t fy = 0;
+
+            bool moves = true;
+
+            virtual void physics_tick() = 0;
+            virtual void shot(Shot&) = 0;
+
+            PhysicsObject(World &w);
+
+            std::vector<PhysicsObject&> collisions();
+    };
+
+    class Wall : public PhysicsObject {
+        Wall(World &w) : PhysicsObject(w) {
+            moves = false;
+        }
+
+        // walls don't do anything
+        void physics_tick() override {}
+        //void shot(Shot &s) override {}
+    };
+
+    class Tank : public PhysicsObject {
+        public:
+            //int32_t x;
+            //int32_t y;
+            //uint32_t heading;
+            //int32_t speed;
+
             uint32_t turret_offset;
             uint32_t scanner_offset;
 
@@ -28,6 +69,8 @@ namespace bots {
             uint8_t _req_turret_keepshift;
             uint16_t _req_scanner_steering;
             uint8_t _req_scanner_keepshift;
+
+            void physics_tick() override;
     };
 
     class Bot {
@@ -45,13 +88,15 @@ namespace bots {
             {}
     };
 
-    struct Shot {
-        int32_t x;
-        int32_t y;
-        uint32_t heading;
+    class Shot : public PhysicsObject {
+        //int32_t x;
+        //int32_t y;
+        //uint32_t heading;
 
         Bot &from;
         long long id;
+
+        void physics_tick() override;
     };
 
     class World {
@@ -76,6 +121,8 @@ namespace bots {
 
             std::vector<std::unique_ptr<Bot>> bots;
             std::list<Shot> shots;
+
+            std::list<PhysicsObject*> physics_objects;
             
             //World(std::vector<Tank> tanks, Options options = {});
             World(Options options);
