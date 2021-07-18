@@ -8,3 +8,4 @@ Makefile
 *.o
 bin/*
 lib/*
+test/test_runner
