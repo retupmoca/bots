@@ -116,7 +116,6 @@ impl World {
                 && shot.y >= bot.tank.y - 40
                 && shot.y <= bot.tank.y + 40
                 && bot.tank.health > 0 {
-                    hit = true;
                     //TODO: add_event
                     bot.tank.health -= 10;
                     if bot.tank.health <= 0 {
@@ -199,7 +198,17 @@ impl World {
     }
 
     fn process_tick(&mut self) {
-        //todo!();
+        for bot in &mut self.bots {
+            if bot.tank.health <= 0 {
+                continue;
+            }
+
+            for i in 0..self.config.cpus_per_tick {
+                bot.cpu.cycle();
+            }
+
+            // TODO: peripherals
+        }
     }
 }
 
@@ -207,7 +216,7 @@ struct Shot {
     x: i32,
     y: i32,
     heading: u32,
-    bot_id: usize,
+    from_bot_id: usize,
 }
 
 pub struct Bot {
