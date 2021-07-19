@@ -29,14 +29,16 @@ impl Default for WorldConfig {
 
 pub struct World {
     config: WorldConfig,
-    pub bots: Vec<Bot>
+    pub bots: Vec<Bot>,
+    shots: Vec<Shot>
 }
 
 impl World {
     pub fn new(config: WorldConfig) -> Self {
         World {
             config,
-            bots: vec![]
+            bots: vec![],
+            shots: vec![],
         }
     }
 
@@ -60,8 +62,152 @@ impl World {
     }
 
     pub fn tick(&mut self) {
-        todo!();
+        // TODO: events?
+        
+        self.physics_tick();
+        self.process_tick();
     }
+
+    fn physics_tick(&mut self) {
+        /* run world physics */
+        /* shots */
+        let mut shots_idx_to_delete: Vec<usize> = Vec::new();
+        for (i, shot) in self.shots.iter_mut().enumerate() {
+            let mut hit = false;
+            for bot in &mut self.bots {
+                if shot.x >= bot.tank.x - 40
+                && shot.x <= bot.tank.x + 40
+                && shot.y >= bot.tank.y - 40
+                && shot.y <= bot.tank.y + 40
+                && bot.tank.health > 0 {
+                    hit = true;
+                    //TODO: add_event
+                    bot.tank.health -= 10;
+                    if bot.tank.health <= 0 {
+                        bot.tank.health = 0;
+                        // TODO add_event
+                    }
+
+                    shots_idx_to_delete.push(i);
+                    break;
+                }
+            }
+            if hit { continue; }
+
+            let rangle = shot.heading as f64 * PI / 512f64;
+            let dist = 20f64;
+            let dy = (dist * rangle.cos() + 0.5).floor() as i32;
+            let dx = (dist * rangle.sin() + 0.5).floor() as i32;
+            let start_x = shot.x;
+            let start_y = shot.y;
+            shot.x += dx;
+            shot.y += dy;
+            if (start_x - shot.x).abs() > dx * 2 || (start_y - shot.y) > dy * 2 {
+                // detect wrapping and delete shot
+                // TODO: rust probably just blows up here?
+                shots_idx_to_delete.push(i);
+                continue;
+            }
+
+            /* check collision again */
+            for bot in &mut self.bots {
+                if shot.x >= bot.tank.x - 40
+                && shot.x <= bot.tank.x + 40
+                && shot.y >= bot.tank.y - 40
+                && shot.y <= bot.tank.y + 40
+                && bot.tank.health > 0 {
+                    hit = true;
+                    //TODO: add_event
+                    bot.tank.health -= 10;
+                    if bot.tank.health <= 0 {
+                        bot.tank.health = 0;
+                        // TODO add_event
+                    }
+
+                    shots_idx_to_delete.push(i);
+                    break;
+                }
+            }
+        }
+        /* bots */
+        for bot in &mut self.bots {
+            if bot.tank.health <= 0 {
+                continue;
+            }
+
+            /* turn, etc */
+            let steering = bot.tank._req_steering;
+            let mut real_steering = steering;
+            if real_steering <= 512 && real_steering > self.config.hull_turn_rate {
+                real_steering = self.config.hull_turn_rate;
+            }
+            if real_steering > 512 && real_steering < (1024 - self.config.hull_turn_rate) {
+                real_steering = 1024 - self.config.hull_turn_rate;
+            }
+            bot.tank._req_steering -= real_steering;
+
+            bot.tank.heading = (bot.tank.heading + real_steering as u32) % 1024;
+            bot.tank.speed = bot.tank._req_throttle as i32;
+            if bot.tank.speed > 100 {
+                bot.tank.speed = 100;
+            }
+
+            /* drive! */
+            let rangle = bot.tank.heading as f64 * PI / 512f64;
+            let dist = bot.tank.speed / 100 * 6;
+            let dy = (dist as f64 * rangle.cos() + 0.5).floor() as i32;
+            let dx = (dist as f64 * rangle.sin() + 0.5).floor() as i32;
+            bot.tank.x += dx;
+            bot.tank.y += dy;
+
+            /* turn turret */
+            let mut turret_steering = bot.tank._req_turret_steering;
+            if bot.tank._req_turret_keepshift != 0 {
+                turret_steering = (turret_steering + 1024 - real_steering) % 1024;
+            }
+            turret_steering = turret_steering % 1024;
+
+            let mut real_turret_steering = turret_steering;
+            if real_turret_steering <= 512 && real_turret_steering > self.config.turret_turn_rate {
+                real_turret_steering = self.config.turret_turn_rate;
+            }
+            if real_turret_steering > 512 && real_turret_steering < (1024 - self.config.turret_turn_rate) {
+                real_turret_steering = 1024 - self.config.turret_turn_rate;
+            }
+            bot.tank._req_turret_steering -= real_turret_steering;
+
+            bot.tank.turret_offset = (bot.tank.turret_offset + real_turret_steering as u32) % 1024;
+
+            /* turn scanner */
+            let mut scanner_steering = bot.tank._req_scanner_steering;
+            if bot.tank._req_scanner_keepshift != 0 {
+                scanner_steering = (scanner_steering + 1024 - real_steering) % 1024;
+            }
+            scanner_steering = scanner_steering % 1024;
+
+            let mut real_scanner_steering = scanner_steering;
+            if real_scanner_steering <= 512 && real_scanner_steering > self.config.scanner_turn_rate {
+                real_scanner_steering = self.config.scanner_turn_rate;
+            }
+            if real_scanner_steering > 512 && real_scanner_steering < (1024 - self.config.scanner_turn_rate) {
+                real_scanner_steering = 1024 - self.config.scanner_turn_rate;
+            }
+            bot.tank._req_scanner_steering -= real_scanner_steering;
+
+            bot.tank.scanner_offset = (bot.tank.scanner_offset + real_scanner_steering as u32) % 1024;
+        }
+    }
+
+    fn process_tick(&mut self) {
+        //todo!();
+    }
+}
+
+struct Shot {
+    x: i32,
+    y: i32,
+    heading: u32,
+    bot_id: usize,
 }
 
 pub struct Bot {
