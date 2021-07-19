@@ -1,3 +1,8 @@
+use std::path::Path;
+use std::fs::File;
+use std::io::Read;
+use std::f64::consts::PI;
+
 use crate::cpu::Cpu;
 
 pub struct WorldConfig {
@@ -36,11 +41,22 @@ impl World {
     }
 
     pub fn add_bot(&mut self, filename: &str) {
-        todo!();
+        self.bots.push(Bot::from(Path::new(filename)));
     }
 
     pub fn place_bots(&mut self) {
-        todo!();
+        let dist = self.config.spawn_distance;
+
+        let mut angle = 0f64;
+        let step = (2f64 * PI) / self.bots.len() as f64;
+
+        for bot in &mut self.bots {
+            let loc_x = (dist as f64 * angle.cos() + 0.5).floor() as i32;
+            let loc_y = (dist as f64 * angle.sin() + 0.5).floor() as i32;
+            bot.tank.x = loc_x;
+            bot.tank.y = loc_y;
+            angle += step;
+        }
     }
 
     pub fn tick(&mut self) {
@@ -53,6 +69,43 @@ pub struct Bot {
     cpu: Cpu
 }
 
+impl From<&Path> for Bot {
+    fn from(file: &Path) -> Self {
+        let mut file = File::open(file).expect("File not found.");
+        let reader: &mut dyn Read = &mut file;
+        Self::from(reader)
+    }
+}
+
+impl From<&mut dyn Read> for Bot {
+    fn from(reader: &mut dyn Read) -> Self {
+        let mut data: Vec<u8> = vec![];
+        reader.read_to_end(&mut data).expect("Read failed");
+        Self::from(&data)
+    }
+}
+
+impl From<&Vec<u8>> for Bot {
+    fn from(data: &Vec<u8>) -> Self {
+        let mut bot = Bot {
+            tank: Tank::default(),
+            cpu: Cpu::default()
+        };
+
+        bot.tank.health = 100;
+        bot.cpu.user_mem_max = 0xefff;
+        bot.cpu.registers[10] = 0xefff;
+        for (i, elem) in data.iter().enumerate() {
+            bot.cpu.memory[i] = *elem;
+        }
+
+        // TODO: mount peripherals
+
+        bot
+    }
+}
+
+#[derive(Default)]
 pub struct Tank {
     pub x: i32,
     pub y: i32,

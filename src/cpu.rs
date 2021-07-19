@@ -1,8 +1,8 @@
 pub struct Cpu {
-    registers: [u16; 12],
-    memory: [u8; 65536],
+    pub registers: [u16; 12],
+    pub memory: [u8; 65536],
     //peripherals: ,
-    user_mem_max: u16,
+    pub user_mem_max: u16,
 
     fetch_flag: u8,
     fetch_pc: u16,
@@ -18,4 +18,29 @@ pub struct Cpu {
     decoded_imm: u16,
 
     execute_cycle: u8,
+}
+
+impl Default for Cpu {
+    fn default() -> Cpu {
+        Cpu {
+            registers: [0; 12],
+            memory: [0; 65536],
+            user_mem_max: 0,
+
+            fetch_flag: 0,
+            fetch_pc: 0,
+            fetched_pc: 0,
+            fetched_instruction: 0,
+
+            decode_flag: 0,
+            decoded_pc: 0,
+            decoded_opcode: 0,
+            decoded_flags: 0,
+            decoded_ra: 0,
+            decoded_rb: 0,
+            decoded_imm: 0,
+
+            execute_cycle: 0
+        }
+    }
 }
