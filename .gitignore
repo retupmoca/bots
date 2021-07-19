@@ -9,3 +9,8 @@ Makefile
 bin/*
 lib/*
 test/test_runner
+
+
+# Added by cargo
+
+/target
