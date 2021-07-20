@@ -11,9 +11,9 @@ impl Peripheral for ResetPeripheral {
         self.write_byte(world, bot, addr, (val & 0xff) as u8);
     }
     fn write_byte(&mut self, _world: &mut World, bot: &mut Bot, addr: u16, val: u8) {
-        bot.cpu.fetch_pc = 0;
-        bot.cpu.fetch_flag = 0;
-        bot.cpu.decode_flag = 0;
+        bot.cpu.get_mut().fetch_pc = 0;
+        bot.cpu.get_mut().fetch_flag = 0;
+        bot.cpu.get_mut().decode_flag = 0;
     }
 }
 

@@ -26,6 +26,17 @@ pub struct Cpu {
 
     execute_cycle: u8,
 }
+#[derive(Clone)]
+pub struct CpuPtr {
+    pub cpu: Rc<cell::RefCell<Cpu>>
+}
+impl CpuPtr {
+    pub fn new(cpu: Cpu) -> CpuPtr {
+        CpuPtr { cpu: Rc::new(cell::RefCell::new(cpu)) }
+    }
+    pub fn get(&self) -> cell::Ref<Cpu> { self.cpu.as_ref().borrow() }
+    pub fn get_mut(&self) -> cell::RefMut<Cpu> { self.cpu.as_ref().borrow_mut() }
+}
 
 impl Default for Cpu {
     fn default() -> Cpu {

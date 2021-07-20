@@ -5,7 +5,7 @@ use std::f64::consts::PI;
 use std::rc::Rc;
 use std::cell;
 
-use crate::cpu::Cpu;
+use crate::cpu::{Cpu, CpuPtr};
 use crate::peripherals::*;
 
 pub struct WorldConfig {
@@ -207,15 +207,18 @@ impl World {
     fn process_tick(&mut self) {
         for bot in self.bots.clone() {
             let mut bot = bot.get_mut();
+            let cpu = bot.cpu.clone();
+            let mut cpu = cpu.get_mut();
+
             if bot.tank.health <= 0 {
                 continue;
             }
 
             for _ in 0..self.config.cpus_per_tick {
-                bot.cpu.cycle(self, &mut bot);
+                cpu.cycle(self, &mut bot);
             }
 
-            for peripheral in bot.cpu.peripherals.clone() {
+            for peripheral in &mut cpu.peripherals {
                 peripheral.1.get_mut().tick(self, &mut bot);
             }
         }
@@ -231,7 +234,7 @@ struct Shot {
 
 pub struct Bot {
     pub tank: Tank,
-    pub cpu: Cpu
+    pub cpu: CpuPtr
 }
 
 #[derive(Clone)]
@@ -266,20 +269,20 @@ impl From<&Vec<u8>> for Bot {
     fn from(data: &Vec<u8>) -> Self {
         let mut bot = Bot {
             tank: Tank::default(),
-            cpu: Cpu::default()
+            cpu: CpuPtr::new(Cpu::default())
         };
 
         bot.tank.health = 100;
-        bot.cpu.user_mem_max = 0xefff;
-        bot.cpu.registers[10] = 0xefff;
+        bot.cpu.get_mut().user_mem_max = 0xefff;
+        bot.cpu.get_mut().registers[10] = 0xefff;
         for (i, elem) in data.iter().enumerate() {
-            bot.cpu.memory[i] = *elem;
+            bot.cpu.get_mut().memory[i] = *elem;
         }
 
-        bot.cpu.mount_peripheral(0xfef0, ResetPeripheral::default());
-        bot.cpu.mount_peripheral(0xfee0, RadarPeripheral::default());
-        bot.cpu.mount_peripheral(0xfed0, TurretPeripheral::default());
-        bot.cpu.mount_peripheral(0xfec0, HullPeripheral::default());
+        bot.cpu.get_mut().mount_peripheral(0xfef0, ResetPeripheral::default());
+        bot.cpu.get_mut().mount_peripheral(0xfee0, RadarPeripheral::default());
+        bot.cpu.get_mut().mount_peripheral(0xfed0, TurretPeripheral::default());
+        bot.cpu.get_mut().mount_peripheral(0xfec0, HullPeripheral::default());
 
         bot
     }
