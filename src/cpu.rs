@@ -1,11 +1,13 @@
 use std::collections::BTreeMap;
+use std::rc::Rc;
+use std::cell;
 
 use crate::world::{World, Bot};
 
 pub struct Cpu {
     pub registers: [u16; 12],
     pub memory: [u8; 65536],
-    pub peripherals: BTreeMap<u16, Box<dyn Peripheral>>,
+    pub peripherals: BTreeMap<u16, PeripheralPtr>,
     pub user_mem_max: u16,
 
     pub fetch_flag: u8,
@@ -120,8 +122,8 @@ impl Cpu {
         }
     }
 
-    pub fn mount_peripheral(&mut self, base_addr: u16, peripheral: Box<dyn Peripheral>) {
-        self.peripherals.insert(base_addr, peripheral);
+    pub fn mount_peripheral<T: 'static + Peripheral>(&mut self, base_addr: u16, peripheral: T) {
+        self.peripherals.insert(base_addr, PeripheralPtr::new(peripheral));
     }
 }
 
@@ -134,4 +136,15 @@ pub trait Peripheral {
     fn tick(&mut self, _world: &mut World, _bot: &mut Bot) {}
 
     fn size(&self) -> u16;
+}
+#[derive(Clone)]
+pub struct PeripheralPtr {
+    peripheral: Rc<cell::RefCell<dyn Peripheral>>
+}
+impl PeripheralPtr {
+    fn new<T: 'static + Peripheral>(peripheral: T) -> Self {
+        Self { peripheral: Rc::new(cell::RefCell::new(peripheral)) }
+    }
+    pub fn get(&self) -> cell::Ref<dyn Peripheral> { self.peripheral.as_ref().borrow() }
+    pub fn get_mut(&self) -> cell::RefMut<dyn Peripheral> { self.peripheral.as_ref().borrow_mut() }
 }

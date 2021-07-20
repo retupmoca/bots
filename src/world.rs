@@ -2,6 +2,8 @@ use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 use std::f64::consts::PI;
+use std::rc::Rc;
+use std::cell;
 
 use crate::cpu::Cpu;
 use crate::peripherals::*;
@@ -30,7 +32,7 @@ impl Default for WorldConfig {
 
 pub struct World {
     config: WorldConfig,
-    pub bots: Vec<Bot>,
+    pub bots: Vec<BotPtr>,
     shots: Vec<Shot>
 }
 
@@ -44,7 +46,7 @@ impl World {
     }
 
     pub fn add_bot(&mut self, filename: &str) {
-        self.bots.push(Bot::from(Path::new(filename)));
+        self.bots.push(BotPtr::new(Bot::from(Path::new(filename))));
     }
 
     pub fn place_bots(&mut self) {
@@ -54,6 +56,7 @@ impl World {
         let step = (2f64 * PI) / self.bots.len() as f64;
 
         for bot in &mut self.bots {
+            let mut bot = bot.get_mut();
             let loc_x = (dist as f64 * angle.cos() + 0.5).floor() as i32;
             let loc_y = (dist as f64 * angle.sin() + 0.5).floor() as i32;
             bot.tank.x = loc_x;
@@ -76,6 +79,7 @@ impl World {
         for (i, shot) in self.shots.iter_mut().enumerate() {
             let mut hit = false;
             for bot in &mut self.bots {
+                let mut bot = bot.get_mut();
                 if shot.x >= bot.tank.x - 40
                 && shot.x <= bot.tank.x + 40
                 && shot.y >= bot.tank.y - 40
@@ -112,6 +116,7 @@ impl World {
 
             /* check collision again */
             for bot in &mut self.bots {
+                let mut bot = bot.get_mut();
                 if shot.x >= bot.tank.x - 40
                 && shot.x <= bot.tank.x + 40
                 && shot.y >= bot.tank.y - 40
@@ -131,6 +136,7 @@ impl World {
         }
         /* bots */
         for bot in &mut self.bots {
+            let mut bot = bot.get_mut();
             if bot.tank.health <= 0 {
                 continue;
             }
@@ -199,7 +205,8 @@ impl World {
     }
 
     fn process_tick(&mut self) {
-        for bot in &mut self.bots {
+        for bot in self.bots.clone() {
+            let mut bot = bot.get_mut();
             if bot.tank.health <= 0 {
                 continue;
             }
@@ -208,8 +215,8 @@ impl World {
                 bot.cpu.cycle();
             }
 
-            for peripheral in &mut bot.cpu.peripherals {
-                peripheral.1.tick(self, bot);
+            for peripheral in bot.cpu.peripherals.clone() {
+                peripheral.1.get_mut().tick(self, &mut bot);
             }
         }
     }
@@ -225,6 +232,18 @@ struct Shot {
 pub struct Bot {
     pub tank: Tank,
     pub cpu: Cpu
+}
+
+#[derive(Clone)]
+pub struct BotPtr {
+    pub bot: Rc<cell::RefCell<Bot>>
+}
+impl BotPtr {
+    fn new(bot: Bot) -> BotPtr {
+        BotPtr { bot: Rc::new(cell::RefCell::new(bot)) }
+    }
+    pub fn get(&self) -> cell::Ref<Bot> { self.bot.as_ref().borrow() }
+    fn get_mut(&self) -> cell::RefMut<Bot> { self.bot.as_ref().borrow_mut() }
 }
 
 impl From<&Path> for Bot {
@@ -257,10 +276,10 @@ impl From<&Vec<u8>> for Bot {
             bot.cpu.memory[i] = *elem;
         }
 
-        bot.cpu.mount_peripheral(0xfef0, Box::new(ResetPeripheral::default()));
-        bot.cpu.mount_peripheral(0xfee0, Box::new(RadarPeripheral::default()));
-        bot.cpu.mount_peripheral(0xfed0, Box::new(TurretPeripheral::default()));
-        bot.cpu.mount_peripheral(0xfec0, Box::new(HullPeripheral::default()));
+        bot.cpu.mount_peripheral(0xfef0, ResetPeripheral::default());
+        bot.cpu.mount_peripheral(0xfee0, RadarPeripheral::default());
+        bot.cpu.mount_peripheral(0xfed0, TurretPeripheral::default());
+        bot.cpu.mount_peripheral(0xfec0, HullPeripheral::default());
 
         bot
     }

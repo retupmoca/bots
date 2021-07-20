@@ -73,7 +73,7 @@ impl Peripheral for RadarPeripheral {
             _ => {}
         };
     }
-    fn tick(&mut self, _world: &mut World, _bot: &mut Bot) {
+    fn tick(&mut self, _world: &mut World, _bot_idx: &mut Bot) {
         // TODO
     }
 }
@@ -119,7 +119,7 @@ impl Peripheral for TurretPeripheral {
             _ => {}
         };
     }
-    fn tick(&mut self, _world: &mut World, _bot: &mut Bot) {
+    fn tick(&mut self, _world: &mut World, _bot_idx: &mut Bot) {
         // TODO
     }
 }
