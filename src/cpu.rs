@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::cell;
 
 use crate::world::{World, Bot};
+use crate::ops::cpu_oplist;
 
 pub struct Cpu {
     pub registers: [u16; 12],
@@ -53,8 +54,8 @@ impl Default for Cpu {
 }
 
 impl Cpu {
-    pub fn cycle(&mut self) {
-        self.execute();
+    pub fn cycle(&mut self, world: &mut World, bot: &mut Bot) {
+        self.execute(world, bot);
         self.decode();
         self.fetch();
     }
@@ -103,7 +104,7 @@ impl Cpu {
         }
     }
 
-    fn execute(&mut self) {
+    fn execute(&mut self, world: &mut World, bot: &mut Bot) {
         if self.decode_flag == 0 {
             return;
         }
@@ -111,12 +112,18 @@ impl Cpu {
         self.registers[0] = 0;
         self.registers[1] = 1;
 
-        // TODO: actually execute opcode
-        let done = false;
-
+        let done = cpu_oplist[self.decoded_opcode as usize](
+            world,
+            bot,
+            self.execute_cycle,
+            self.decoded_flags,
+            self.decoded_ra,
+            self.decoded_rb,
+            self.decoded_imm
+        );
         self.execute_cycle += 1;
 
-        if done {
+        if done != 0 {
             self.decode_flag = 0;
             self.execute_cycle = 0;
         }

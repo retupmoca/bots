@@ -212,7 +212,7 @@ impl World {
             }
 
             for _ in 0..self.config.cpus_per_tick {
-                bot.cpu.cycle();
+                bot.cpu.cycle(self, &mut bot);
             }
 
             for peripheral in bot.cpu.peripherals.clone() {
