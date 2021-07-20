@@ -1,15 +1,19 @@
+use std::collections::BTreeMap;
+
+use crate::world::{World, Bot};
+
 pub struct Cpu {
     pub registers: [u16; 12],
     pub memory: [u8; 65536],
-    //peripherals: ,
+    pub peripherals: BTreeMap<u16, Box<dyn Peripheral>>,
     pub user_mem_max: u16,
 
-    fetch_flag: u8,
-    fetch_pc: u16,
+    pub fetch_flag: u8,
+    pub fetch_pc: u16,
     fetched_pc: u16,
     fetched_instruction: u32,
 
-    decode_flag: u8,
+    pub decode_flag: u8,
     decoded_pc: u16,
     decoded_opcode: u8,
     decoded_flags: u8,
@@ -25,6 +29,7 @@ impl Default for Cpu {
         Cpu {
             registers: [0; 12],
             memory: [0; 65536],
+            peripherals: BTreeMap::new(),
             user_mem_max: 0,
 
             fetch_flag: 0,
@@ -114,4 +119,19 @@ impl Cpu {
             self.execute_cycle = 0;
         }
     }
+
+    pub fn mount_peripheral(&mut self, base_addr: u16, peripheral: Box<dyn Peripheral>) {
+        self.peripherals.insert(base_addr, peripheral);
+    }
+}
+
+pub trait Peripheral {
+    fn write_word(&mut self, world: &mut World, bot: &mut Bot, addr: u16, val: u16);
+    fn write_byte(&mut self, world: &mut World, bot: &mut Bot, addr: u16, val: u8);
+    fn read_word(&mut self, world: &mut World, bot: &mut Bot, addr: u16) -> u16;
+    fn read_byte(&mut self, world: &mut World, bot: &mut Bot, addr: u16) -> u8;
+
+    fn tick(&mut self, _world: &mut World, _bot: &mut Bot) {}
+
+    fn size(&self) -> u16;
 }

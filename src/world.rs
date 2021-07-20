@@ -4,6 +4,7 @@ use std::io::Read;
 use std::f64::consts::PI;
 
 use crate::cpu::Cpu;
+use crate::peripherals::*;
 
 pub struct WorldConfig {
     pub cpus_per_tick: u8,
@@ -203,11 +204,13 @@ impl World {
                 continue;
             }
 
-            for i in 0..self.config.cpus_per_tick {
+            for _ in 0..self.config.cpus_per_tick {
                 bot.cpu.cycle();
             }
 
-            // TODO: peripherals
+            for peripheral in &mut bot.cpu.peripherals {
+                peripheral.1.tick(self, bot);
+            }
         }
     }
 }
@@ -221,7 +224,7 @@ struct Shot {
 
 pub struct Bot {
     pub tank: Tank,
-    cpu: Cpu
+    pub cpu: Cpu
 }
 
 impl From<&Path> for Bot {
@@ -254,7 +257,10 @@ impl From<&Vec<u8>> for Bot {
             bot.cpu.memory[i] = *elem;
         }
 
-        // TODO: mount peripherals
+        bot.cpu.mount_peripheral(0xfef0, Box::new(ResetPeripheral::default()));
+        bot.cpu.mount_peripheral(0xfee0, Box::new(RadarPeripheral::default()));
+        bot.cpu.mount_peripheral(0xfed0, Box::new(TurretPeripheral::default()));
+        bot.cpu.mount_peripheral(0xfec0, Box::new(HullPeripheral::default()));
 
         bot
     }
@@ -267,15 +273,15 @@ pub struct Tank {
 
     pub heading: u32,
     speed: i32,
-    turret_offset: u32,
-    scanner_offset: u32,
+    pub turret_offset: u32,
+    pub scanner_offset: u32,
 
     health: u8,
 
-    _req_steering: u16,
-    _req_throttle: i16,
-    _req_turret_steering: u16,
-    _req_turret_keepshift: u8,
-    _req_scanner_steering: u16,
-    _req_scanner_keepshift: u8
+    pub _req_steering: u16,
+    pub _req_throttle: i16,
+    pub _req_turret_steering: u16,
+    pub _req_turret_keepshift: u8,
+    pub _req_scanner_steering: u16,
+    pub _req_scanner_keepshift: u8
 }
