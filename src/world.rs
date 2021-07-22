@@ -9,6 +9,8 @@ use std::ptr;
 use crate::cpu::{Cpu, Peripheral};
 use crate::peripherals::*;
 
+#[derive(Clone)]
+#[repr(C)]
 pub struct WorldConfig {
     pub cpus_per_tick: u8,
     pub spawn_distance: i32,
@@ -32,6 +34,7 @@ impl Default for WorldConfig {
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub enum EventType {
     Fire,
     Death,
@@ -40,6 +43,7 @@ pub enum EventType {
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct Event {
     event_type: EventType,
     bot_idx: usize
@@ -362,6 +366,7 @@ impl From<&Vec<u8>> for Bot {
 }
 
 #[derive(Default)]
+#[repr(C)]
 pub struct Tank {
     pub x: i32,
     pub y: i32,

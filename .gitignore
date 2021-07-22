@@ -1,15 +1,7 @@
-Makefile
-*.dll
-*.exe
-*.exp
-*.lib
-*.obj
-
 *.o
 bin/*
-lib/*
-test/test_runner
 
+bots.h
 
 # Added by cargo
 
