@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::Read;
 use std::f64::consts::PI;
 use std::cell::RefCell;
+use std::ptr;
 
 use crate::cpu::{Cpu, Peripheral};
 use crate::peripherals::*;
@@ -30,10 +31,25 @@ impl Default for WorldConfig {
     }
 }
 
+#[derive(Debug)]
+pub enum EventType {
+    Fire,
+    Death,
+    Scan,
+    Hit,
+}
+
+#[derive(Debug)]
+pub struct Event {
+    event_type: EventType,
+    bot_idx: usize
+}
+
 pub struct World {
     config: WorldConfig,
     pub bots: Vec<Bot>,
-    shots: RefCell<Vec<Shot>>
+    shots: RefCell<Vec<Shot>>,
+    pub events: RefCell<Vec<Event>>,
 }
 
 impl World {
@@ -42,11 +58,19 @@ impl World {
             config,
             bots: vec![],
             shots: RefCell::new(vec![]),
+            events: RefCell::new(vec![]),
         }
     }
 
     pub fn add_bot(&mut self, filename: &str) {
         self.bots.push(Bot::from(Path::new(filename)));
+    }
+
+    pub fn add_event(&self, event_type: EventType, bot: &Bot) {
+        self.events.borrow_mut().push(Event {
+            event_type,
+            bot_idx: self.bots.iter().enumerate().filter(|(i, b)| ptr::eq(bot, *b)).next().unwrap().0
+        });
     }
 
     pub fn place_bots(&mut self) {
@@ -65,7 +89,7 @@ impl World {
     }
 
     pub fn tick(&mut self) {
-        // TODO: events?
+        self.events.borrow_mut().clear();
         
         self.physics_tick();
         self.process_tick();
@@ -77,7 +101,7 @@ impl World {
         let mut shots_idx_to_delete: Vec<usize> = Vec::new();
         for (i, shot) in self.shots.borrow_mut().iter_mut().enumerate() {
             let mut hit = false;
-            for bot in &mut self.bots {
+            for bot in self.bots.iter() {
                 let mut tank = bot.tank_mut();
                 if shot.x >= tank.x - 40
                 && shot.x <= tank.x + 40
@@ -85,11 +109,11 @@ impl World {
                 && shot.y <= tank.y + 40
                 && tank.health > 0 {
                     hit = true;
-                    //TODO: add_event
+                    self.add_event(EventType::Hit, bot);
                     tank.health -= 10;
                     if tank.health <= 0 {
                         tank.health = 0;
-                        // TODO add_event
+                        self.add_event(EventType::Death, bot);
                     }
 
                     shots_idx_to_delete.push(i);
@@ -114,23 +138,30 @@ impl World {
             }
 
             /* check collision again */
-            for bot in &mut self.bots {
+            for bot in self.bots.iter() {
                 let mut tank = bot.tank_mut();
                 if shot.x >= tank.x - 40
                 && shot.x <= tank.x + 40
                 && shot.y >= tank.y - 40
                 && shot.y <= tank.y + 40
                 && tank.health > 0 {
-                    //TODO: add_event
+                    self.add_event(EventType::Hit, bot);
                     tank.health -= 10;
                     if tank.health <= 0 {
                         tank.health = 0;
-                        // TODO add_event
+                        self.add_event(EventType::Death, bot);
                     }
 
                     shots_idx_to_delete.push(i);
                     break;
                 }
+            }
+        }
+        {
+            let mut shots = self.shots.borrow_mut();
+            shots_idx_to_delete.reverse();
+            for idx in shots_idx_to_delete {
+                shots.remove(idx);
             }
         }
         /* bots */
@@ -222,7 +253,6 @@ impl World {
 
     pub fn add_shot(&self, shot: Shot) {
         self.shots.borrow_mut().push(shot);
-        // TODO: shot event
     }
 }
 

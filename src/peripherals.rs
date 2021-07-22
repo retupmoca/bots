@@ -2,7 +2,7 @@ use std::ptr;
 use std::f64::consts::PI;
 
 use crate::cpu::Peripheral;
-use crate::world::{World, Bot, Shot};
+use crate::world::{World, Bot, Shot, EventType};
 
 #[derive(Default)]
 pub struct ResetPeripheral;
@@ -130,7 +130,7 @@ impl Peripheral for RadarPeripheral {
                 }
             }
 
-            // TODO add scan event
+            world.add_event(EventType::Scan, bot);
         }
     }
 }
@@ -196,6 +196,7 @@ impl Peripheral for TurretPeripheral {
             world.add_shot(Shot {
                 x, y, heading
             });
+            world.add_event(EventType::Fire, bot);
         }
     }
 }
