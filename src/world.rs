@@ -205,10 +205,11 @@ impl World {
 
     fn process_tick(&mut self) {
         for bot in self.bots.iter() {
-            let tank = bot.tank_mut();
-
-            if tank.health <= 0 {
-                continue;
+            {
+                let tank = bot.tank_mut();
+                if tank.health <= 0 {
+                    continue;
+                }
             }
 
             for _ in 0..self.config.cpus_per_tick {
@@ -249,16 +250,34 @@ impl Bot {
     }
 
     pub fn write_peripheral_word(&self, address: u16, value: u16) {
-        todo!();
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                peripheral.write_word(self, address - addr, value);
+            }
+        }
     }
     pub fn write_peripheral_byte(&self, address: u16, value: u8) {
-        todo!();
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                peripheral.write_byte(self, address - addr, value);
+            }
+        }
     }
     pub fn read_peripheral_word(&self, address: u16) -> u16 {
-        todo!();
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                return peripheral.read_word(self, address - addr);
+            }
+        }
+        return 0;
     }
     pub fn read_peripheral_byte(&self, address: u16) -> u8 {
-        todo!();
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                return peripheral.read_byte(self, address - addr);
+            }
+        }
+        return 0;
     }
 }
 
