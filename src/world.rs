@@ -69,7 +69,7 @@ impl World {
     pub fn add_event(&self, event_type: EventType, bot: &Bot) {
         self.events.borrow_mut().push(Event {
             event_type,
-            bot_idx: self.bots.iter().enumerate().filter(|(i, b)| ptr::eq(bot, *b)).next().unwrap().0
+            bot_idx: self.bots.iter().enumerate().filter(|(_, b)| ptr::eq(bot, *b)).next().unwrap().0
         });
     }
 

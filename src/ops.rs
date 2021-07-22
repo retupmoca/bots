@@ -66,7 +66,7 @@ fn op_add(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm
         };
     true
 }
-fn op_sub(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_sub(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::IMM_IS_REG) {
             m.registers[rb as usize] - m.registers[imm as usize]
@@ -79,7 +79,7 @@ fn op_sub(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
         };
     true
 }
-fn op_mul(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_mul(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::IMM_IS_REG) {
             m.registers[rb as usize] * m.registers[imm as usize]
@@ -89,7 +89,7 @@ fn op_mul(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
         };
     true
 }
-fn op_div(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_div(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::DIV_REMAINDER) {
             if flags.contains(F::IMM_IS_REG) {
@@ -115,7 +115,7 @@ fn op_div(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
         };
     true
 }
-fn op_or(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_or(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::IMM_IS_REG) {
             m.registers[rb as usize] | m.registers[imm as usize]
@@ -125,7 +125,7 @@ fn op_or(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u
         };
     true
 }
-fn op_and(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_and(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::IMM_IS_REG) {
             m.registers[rb as usize] & m.registers[imm as usize]
@@ -135,7 +135,7 @@ fn op_and(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
         };
     true
 }
-fn op_xor(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_xor(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::IMM_IS_REG) {
             m.registers[rb as usize] ^ m.registers[imm as usize]
@@ -145,7 +145,7 @@ fn op_xor(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
         };
     true
 }
-fn op_shift(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_shift(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     m.registers[ra as usize] =
         if flags.contains(F::SHIFT_LEFT) {
             if flags.contains(F::IMM_IS_REG) {
@@ -171,19 +171,19 @@ fn op_shift(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm
         };
     true
 }
-fn op_not(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_not(m: &mut Cpu, _bot: &Bot, _cycle: u8, _flags: Flags, ra: u8, rb: u8, _imm: u16) -> bool {
     m.registers[ra as usize] = !m.registers[rb as usize];
     true
 }
 // push/pop use register 10 as the stack pointer
 // pointer is assumed to be at the end of usable memory and grows down
-fn op_push(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_push(m: &mut Cpu, _bot: &Bot, _cycle: u8, _flags: Flags, ra: u8, _rb: u8, _imm: u16) -> bool {
     m.registers[10] -= 2;
     m.memory[m.registers[10] as usize] = (m.registers[ra as usize] >> 8) as u8;
     m.memory[m.registers[10] as usize + 1] = (m.registers[ra as usize] & 0xff) as u8;
     true
 }
-fn op_pop(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_pop(m: &mut Cpu, _bot: &Bot, _cycle: u8, _flags: Flags, ra: u8, _rb: u8, _imm: u16) -> bool {
     m.registers[ra as usize] = (m.memory[m.registers[10] as usize] as u16) << 8;
     m.registers[ra as usize] |= m.memory[m.registers[10] as usize + 1] as u16;
     m.registers[10] += 2;
@@ -192,27 +192,26 @@ fn op_pop(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
 
 fn compute_memory_address(m: &mut Cpu, size: u8, allow_io: bool, imm_is_reg: bool, reg: u8, imm: u16) -> u16 {
     let mut target: u16 = m.registers[reg as usize];
-    if(imm_is_reg) {
+    if imm_is_reg {
         target += m.registers[imm as usize];
     }
     else {
         target += imm;
     }
 
-    if(allow_io) {
-        if(target > (m.user_mem_max - (size as u16-1))
-        && target < 0xf000) {
+    if allow_io {
+        if target > (m.user_mem_max - (size as u16-1)) && target < 0xf000 {
             target = 0;
         }
     }
-    else if(target > (m.user_mem_max - (size as u16-1))) {
+    else if target > (m.user_mem_max - (size as u16-1)) {
         target = 0;
     }
 
     target
 }
 
-fn op_store(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_store(m: &mut Cpu, bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     if flags.contains(F::STORE_BYTE) {
         let target = compute_memory_address(m, 1, true, flags.contains(F::IMM_IS_REG), rb, imm);
         if target >= 0xf000 {
@@ -234,7 +233,7 @@ fn op_store(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm
     }
     true
 }
-fn op_load(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_load(m: &mut Cpu, bot: &Bot, _cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     if flags.contains(F::LOAD_BYTE) {
         let target = compute_memory_address(m, 1, true, flags.contains(F::IMM_IS_REG), rb, imm);
         if target >= 0xf000 {
@@ -260,20 +259,20 @@ fn op_load(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm:
 fn set_compare_flags(m: &mut Cpu, val_a: u16, val_b: u16) {
     m.registers[11] = m.registers[11] & 0x0fff;
     
-    if(val_a < val_b) {
+    if val_a < val_b {
         m.registers[11] = m.registers[11] | 0x8000;
     }
-    if(val_a > val_b) {
+    if val_a > val_b {
         m.registers[11] = m.registers[11] | 0x4000;
     }
-    if(val_a == val_b) {
+    if val_a == val_b {
         m.registers[11] = m.registers[11] | 0x2000;
     }
-    if(val_a == 0 && val_b == 0) {
+    if val_a == 0 && val_b == 0 {
         m.registers[11] = m.registers[11] | 0x1000;
     }
 }
-fn op_cmp(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_cmp(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, _ra: u8, rb: u8, imm: u16) -> bool {
     if flags.contains(F::IMM_IS_REG) {
         set_compare_flags(m, m.registers[rb as usize], m.registers[imm as usize]);
     }
@@ -285,33 +284,33 @@ fn op_cmp(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
     }
     true
 }
-fn op_jmp(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
+fn op_jmp(m: &mut Cpu, _bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     let flags = F::combine_nibbles(flags.bits, ra & 0x0f);
     let mut target = compute_memory_address(m, 4, false, flags.contains(F::JMP_IMM_IS_REG), rb, imm);
 
     let mut jump = true;
 
     /* if less and no less-than flag */
-    if(flags.contains(F::JMP_IFLESS) && (m.registers[11] & 0x8000) == 0) {
+    if flags.contains(F::JMP_IFLESS) && (m.registers[11] & 0x8000) == 0 {
         jump = false;
     }
 
     /* if greater and no greater-than flag */
-    if(flags.contains(F::JMP_IFMORE) && (m.registers[11] & 0x4000) == 0) {
+    if flags.contains(F::JMP_IFMORE) && (m.registers[11] & 0x4000) == 0 {
         jump = false;
     }
 
     /* if equal and no equal flag */
-    if(flags.contains(F::JMP_IFEQ) && (m.registers[11] & 0x2000) == 0) {
+    if flags.contains(F::JMP_IFEQ) && (m.registers[11] & 0x2000) == 0 {
         jump = false;
     }
 
     /* check for invert */
-    if(flags.contains(F::JMP_IFNOT)) {
+    if flags.contains(F::JMP_IFNOT) {
         jump = !jump;
     }
 
-    if(jump && cycle == 0 && flags.contains(F::JMP_CALL)) { /* if this is the first cycle of a call */
+    if jump && cycle == 0 && flags.contains(F::JMP_CALL) { /* if this is the first cycle of a call */
         m.registers[10] -= 2;
         let mut pc = m.decoded_pc;
         pc += 4;
@@ -320,11 +319,11 @@ fn op_jmp(m: &mut Cpu, bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: 
         return false;
     }
 
-    if(!jump) {
+    if !jump {
         target = m.decoded_pc + 4;
     }
 
-    if(m.fetched_pc != target) { /* if prediction was wrong */
+    if m.fetched_pc != target { /* if prediction was wrong */
         m.fetch_pc = target;
         m.fetch_flag = 0;
         m.decode_flag = 0;
