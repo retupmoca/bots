@@ -1,3 +1,6 @@
+use std::ptr;
+use std::f64::consts::PI;
+
 use crate::cpu::Peripheral;
 use crate::world::{World, Bot};
 
@@ -74,8 +77,61 @@ impl Peripheral for RadarPeripheral {
             _ => {}
         };
     }
-    fn tick(&mut self, _bot: &Bot, _world: &World) {
-        // TODO
+    fn tick(&mut self, bot: &Bot, world: &World) {
+        let tank = bot.tank_mut();
+
+        if self.scan != 0 {
+            self.scan = 0;
+
+            // get global heading of scanner
+            let heading = tank.heading + tank.scanner_offset;
+
+            // check angle and range of each bot against scan paramters
+            let radar_left = ((heading - self.arc as u32) % 1024) as u16;
+            let radar_right = ((heading + self.arc as u32) % 1024) as u16;
+
+            let mut seen_idx = 0;
+            let mut seen_bots: [i32; 256] = [0i32; 256];
+            let mut seen_bot_range: [i32; 256] = [0i32; 256];
+            let mut seen_bot_angle: [i32; 256] = [0i32; 256];
+
+            for (j, wbot) in world.bots.iter().enumerate() {
+                if ptr::eq(bot, wbot) {
+                    continue;
+                }
+                let wtank = wbot.tank.borrow();
+                if wtank.health <= 0 {
+                    continue;
+                }
+
+                let x = (wtank.x - tank.x) as f64;
+                let y = (wtank.y - tank.y) as f64;
+
+                let angle = ((x.atan2(y) * 512f64 / PI) as i32 % 1024) as i32;
+                let range = (y * y + x * x).sqrt() as i32;
+
+                if range <= self.range as i32
+                && (  (radar_left < radar_right && angle as u16 > radar_left && (angle as u16) < radar_right)
+                    ||(radar_left > radar_right && (angle as u16 > radar_left || (angle as u16) < radar_right))) {
+                    seen_bot_range[seen_idx] = range;
+                    seen_bot_angle[seen_idx] = angle;
+                    seen_bots[seen_idx] = j as i32;
+                    seen_idx += 1;
+                }
+            }
+
+            self.result_range = 0;
+            self.result_offset = 0;
+            for j in 0..seen_idx {
+                if seen_bot_range[j] < self.result_range as i32 || self.result_range == 0 {
+                    self.result_range = seen_bot_range[j] as u16;
+                    // TODO: some kind of scanner offset instead of bearing
+                    self.result_offset = seen_bot_angle[j] as u16;
+                }
+            }
+
+            // TODO add scan event
+        }
     }
 }
 
@@ -120,8 +176,13 @@ impl Peripheral for TurretPeripheral {
             _ => {}
         };
     }
-    fn tick(&mut self, _bot: &Bot, _world: &World) {
-        // TODO
+    fn tick(&mut self, bot: &Bot, _world: &World) {
+        let tank = bot.tank_mut();
+
+        if self.fire != 0 {
+            self.fire = 0;
+            // TODO: add shot
+        }
     }
 }
 

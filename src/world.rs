@@ -337,7 +337,7 @@ pub struct Tank {
     pub turret_offset: u32,
     pub scanner_offset: u32,
 
-    health: u8,
+    pub health: u8,
 
     pub _req_steering: u16,
     pub _req_throttle: i16,
