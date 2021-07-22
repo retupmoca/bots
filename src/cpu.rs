@@ -1,5 +1,5 @@
 use crate::world::{World, Bot};
-use crate::ops::cpu_oplist;
+use crate::ops::CPU_OPLIST;
 
 pub struct Cpu {
     pub registers: [u16; 12],
@@ -106,7 +106,7 @@ impl Cpu {
         self.registers[0] = 0;
         self.registers[1] = 1;
 
-        let done = cpu_oplist[self.decoded_opcode as usize](
+        let done = CPU_OPLIST[self.decoded_opcode as usize](
             bot,
             self.execute_cycle,
             self.decoded_flags,
@@ -116,7 +116,7 @@ impl Cpu {
         );
         self.execute_cycle += 1;
 
-        if done != 0 {
+        if done {
             self.decode_flag = 0;
             self.execute_cycle = 0;
         }
