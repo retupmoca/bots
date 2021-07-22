@@ -107,6 +107,7 @@ impl Cpu {
         self.registers[1] = 1;
 
         let done = CPU_OPLIST[self.decoded_opcode as usize](
+            self,
             bot,
             self.execute_cycle,
             self.decoded_flags,
