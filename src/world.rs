@@ -1,11 +1,13 @@
+use std::collections::BTreeMap;
 use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 use std::f64::consts::PI;
 use std::rc::Rc;
 use std::cell;
+use std::cell::RefCell;
 
-use crate::cpu::{Cpu, CpuPtr};
+use crate::cpu::{Cpu, Peripheral};
 use crate::peripherals::*;
 
 pub struct WorldConfig {
@@ -59,8 +61,8 @@ impl World {
             let mut bot = bot.get_mut();
             let loc_x = (dist as f64 * angle.cos() + 0.5).floor() as i32;
             let loc_y = (dist as f64 * angle.sin() + 0.5).floor() as i32;
-            bot.tank.x = loc_x;
-            bot.tank.y = loc_y;
+            bot.tank_mut().x = loc_x;
+            bot.tank_mut().y = loc_y;
             angle += step;
         }
     }
@@ -79,17 +81,18 @@ impl World {
         for (i, shot) in self.shots.iter_mut().enumerate() {
             let mut hit = false;
             for bot in &mut self.bots {
-                let mut bot = bot.get_mut();
-                if shot.x >= bot.tank.x - 40
-                && shot.x <= bot.tank.x + 40
-                && shot.y >= bot.tank.y - 40
-                && shot.y <= bot.tank.y + 40
-                && bot.tank.health > 0 {
+                let bot = bot.get();
+                let mut tank = bot.tank_mut();
+                if shot.x >= tank.x - 40
+                && shot.x <= tank.x + 40
+                && shot.y >= tank.y - 40
+                && shot.y <= tank.y + 40
+                && tank.health > 0 {
                     hit = true;
                     //TODO: add_event
-                    bot.tank.health -= 10;
-                    if bot.tank.health <= 0 {
-                        bot.tank.health = 0;
+                    tank.health -= 10;
+                    if tank.health <= 0 {
+                        tank.health = 0;
                         // TODO add_event
                     }
 
@@ -116,16 +119,17 @@ impl World {
 
             /* check collision again */
             for bot in &mut self.bots {
-                let mut bot = bot.get_mut();
-                if shot.x >= bot.tank.x - 40
-                && shot.x <= bot.tank.x + 40
-                && shot.y >= bot.tank.y - 40
-                && shot.y <= bot.tank.y + 40
-                && bot.tank.health > 0 {
+                let bot = bot.get();
+                let mut tank = bot.tank_mut();
+                if shot.x >= tank.x - 40
+                && shot.x <= tank.x + 40
+                && shot.y >= tank.y - 40
+                && shot.y <= tank.y + 40
+                && tank.health > 0 {
                     //TODO: add_event
-                    bot.tank.health -= 10;
-                    if bot.tank.health <= 0 {
-                        bot.tank.health = 0;
+                    tank.health -= 10;
+                    if tank.health <= 0 {
+                        tank.health = 0;
                         // TODO add_event
                     }
 
@@ -136,13 +140,14 @@ impl World {
         }
         /* bots */
         for bot in &mut self.bots {
-            let mut bot = bot.get_mut();
-            if bot.tank.health <= 0 {
+            let bot = bot.get();
+            let mut tank = bot.tank_mut();
+            if tank.health <= 0 {
                 continue;
             }
 
             /* turn, etc */
-            let steering = bot.tank._req_steering;
+            let steering = tank._req_steering;
             let mut real_steering = steering;
             if real_steering <= 512 && real_steering > self.config.hull_turn_rate {
                 real_steering = self.config.hull_turn_rate;
@@ -150,25 +155,25 @@ impl World {
             if real_steering > 512 && real_steering < (1024 - self.config.hull_turn_rate) {
                 real_steering = 1024 - self.config.hull_turn_rate;
             }
-            bot.tank._req_steering -= real_steering;
+            tank._req_steering -= real_steering;
 
-            bot.tank.heading = (bot.tank.heading + real_steering as u32) % 1024;
-            bot.tank.speed = bot.tank._req_throttle as i32;
-            if bot.tank.speed > 100 {
-                bot.tank.speed = 100;
+            tank.heading = (tank.heading + real_steering as u32) % 1024;
+            tank.speed = tank._req_throttle as i32;
+            if tank.speed > 100 {
+                tank.speed = 100;
             }
 
             /* drive! */
-            let rangle = bot.tank.heading as f64 * PI / 512f64;
-            let dist = bot.tank.speed / 100 * 6;
+            let rangle = tank.heading as f64 * PI / 512f64;
+            let dist = tank.speed / 100 * 6;
             let dy = (dist as f64 * rangle.cos() + 0.5).floor() as i32;
             let dx = (dist as f64 * rangle.sin() + 0.5).floor() as i32;
-            bot.tank.x += dx;
-            bot.tank.y += dy;
+            tank.x += dx;
+            tank.y += dy;
 
             /* turn turret */
-            let mut turret_steering = bot.tank._req_turret_steering;
-            if bot.tank._req_turret_keepshift != 0 {
+            let mut turret_steering = tank._req_turret_steering;
+            if tank._req_turret_keepshift != 0 {
                 turret_steering = (turret_steering + 1024 - real_steering) % 1024;
             }
             turret_steering = turret_steering % 1024;
@@ -180,13 +185,13 @@ impl World {
             if real_turret_steering > 512 && real_turret_steering < (1024 - self.config.turret_turn_rate) {
                 real_turret_steering = 1024 - self.config.turret_turn_rate;
             }
-            bot.tank._req_turret_steering -= real_turret_steering;
+            tank._req_turret_steering -= real_turret_steering;
 
-            bot.tank.turret_offset = (bot.tank.turret_offset + real_turret_steering as u32) % 1024;
+            tank.turret_offset = (tank.turret_offset + real_turret_steering as u32) % 1024;
 
             /* turn scanner */
-            let mut scanner_steering = bot.tank._req_scanner_steering;
-            if bot.tank._req_scanner_keepshift != 0 {
+            let mut scanner_steering = tank._req_scanner_steering;
+            if tank._req_scanner_keepshift != 0 {
                 scanner_steering = (scanner_steering + 1024 - real_steering) % 1024;
             }
             scanner_steering = scanner_steering % 1024;
@@ -198,29 +203,26 @@ impl World {
             if real_scanner_steering > 512 && real_scanner_steering < (1024 - self.config.scanner_turn_rate) {
                 real_scanner_steering = 1024 - self.config.scanner_turn_rate;
             }
-            bot.tank._req_scanner_steering -= real_scanner_steering;
+            tank._req_scanner_steering -= real_scanner_steering;
 
-            bot.tank.scanner_offset = (bot.tank.scanner_offset + real_scanner_steering as u32) % 1024;
+            tank.scanner_offset = (tank.scanner_offset + real_scanner_steering as u32) % 1024;
         }
     }
 
     fn process_tick(&mut self) {
         for bot in self.bots.clone() {
-            let mut bot = bot.get_mut();
-            let cpu = bot.cpu.clone();
-            let mut cpu = cpu.get_mut();
+            let bot = bot.get();
+            let tank = bot.tank_mut();
 
-            if bot.tank.health <= 0 {
+            if tank.health <= 0 {
                 continue;
             }
 
             for _ in 0..self.config.cpus_per_tick {
-                cpu.cycle(self, &mut bot);
+                bot.tick_cpu();
             }
 
-            for peripheral in &mut cpu.peripherals {
-                peripheral.1.get_mut().tick(self, &mut bot);
-            }
+            bot.tick_peripherals(self);
         }
     }
 }
@@ -233,8 +235,25 @@ struct Shot {
 }
 
 pub struct Bot {
-    pub tank: Tank,
-    pub cpu: CpuPtr
+    pub tank: RefCell<Tank>,
+    pub cpu: RefCell<Cpu>,
+    pub peripherals: RefCell<BTreeMap<u16, Box<dyn Peripheral>>>,
+}
+
+impl Bot {
+    pub fn tank_mut(&self) -> std::cell::RefMut<Tank> {
+        self.tank.borrow_mut()
+    }
+
+    fn tick_cpu(&self) {
+        self.cpu.borrow_mut().cycle(self);
+    }
+
+    fn tick_peripherals(&self, world: &mut World) {
+        for (_, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            peripheral.tick(self, world);
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -267,22 +286,29 @@ impl From<&mut dyn Read> for Bot {
 
 impl From<&Vec<u8>> for Bot {
     fn from(data: &Vec<u8>) -> Self {
-        let mut bot = Bot {
-            tank: Tank::default(),
-            cpu: CpuPtr::new(Cpu::default())
+        let bot = Bot {
+            tank: RefCell::new(Tank::default()),
+            cpu: RefCell::new(Cpu::default()),
+            peripherals: RefCell::new(BTreeMap::new())
         };
 
-        bot.tank.health = 100;
-        bot.cpu.get_mut().user_mem_max = 0xefff;
-        bot.cpu.get_mut().registers[10] = 0xefff;
-        for (i, elem) in data.iter().enumerate() {
-            bot.cpu.get_mut().memory[i] = *elem;
+        bot.tank.borrow_mut().health = 100;
+        {
+            let mut cpu = bot.cpu.borrow_mut();
+            cpu.user_mem_max = 0xefff;
+            cpu.registers[10] = 0xefff;
+            for (i, elem) in data.iter().enumerate() {
+                cpu.memory[i] = *elem;
+            }
         }
 
-        bot.cpu.get_mut().mount_peripheral(0xfef0, ResetPeripheral::default());
-        bot.cpu.get_mut().mount_peripheral(0xfee0, RadarPeripheral::default());
-        bot.cpu.get_mut().mount_peripheral(0xfed0, TurretPeripheral::default());
-        bot.cpu.get_mut().mount_peripheral(0xfec0, HullPeripheral::default());
+        {
+            let mut peripherals = bot.peripherals.borrow_mut();
+            peripherals.insert(0xfef0, Box::new(ResetPeripheral::default()));
+            peripherals.insert(0xfee0, Box::new(RadarPeripheral::default()));
+            peripherals.insert(0xfed0, Box::new(TurretPeripheral::default()));
+            peripherals.insert(0xfec0, Box::new(HullPeripheral::default()));
+        }
 
         bot
     }

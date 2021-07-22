@@ -1,6 +1,6 @@
-use crate::world::{World, Bot};
+use crate::world::Bot;
 
-type CpuOp = fn(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8;
+type CpuOp = fn(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8;
 
 const CPU_OP_COUNT: usize = 16;
 pub const cpu_oplist: [CpuOp; CPU_OP_COUNT] = [
@@ -22,51 +22,51 @@ pub const cpu_oplist: [CpuOp; CPU_OP_COUNT] = [
     op_jmp,
 ];
 
-fn op_nop(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_nop(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_add(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_add(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_sub(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_sub(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_mul(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_mul(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_div(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_div(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_or(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_or(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_and(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_and(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_xor(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_xor(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_shift(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_shift(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_not(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_not(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_push(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_push(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_pop(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_pop(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_store(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_store(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_load(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_load(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_cmp(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_cmp(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }
-fn op_jmp(world: &mut World, bot: &mut Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
+fn op_jmp(bot: &Bot, cycle: u8, flags: u8, ra: u8, rb: u8, imm: u16) -> u8 {
     todo!()
 }

@@ -24,9 +24,13 @@ fn main() {
 
     loop {
         world.tick();
-        println!("Bot 1 heading: {}", world.bots[0].get().tank.heading);
-        println!("Bot 1 position: {}:{}", world.bots[0].get().tank.x, world.bots[0].get().tank.y);
-        println!("Bot 2 position: {}:{}", world.bots[1].get().tank.x, world.bots[0].get().tank.y);
+        let bot = world.bots[0].get();
+        let tank = bot.tank_mut();
+        println!("Bot 1 heading: {}", tank.heading);
+        println!("Bot 1 position: {}:{}", tank.x, tank.y);
+        let bot = world.bots[1].get();
+        let tank = bot.tank_mut();
+        println!("Bot 2 position: {}:{}", tank.x, tank.y);
         thread::sleep(Duration::from_millis(1000));
     }
 }

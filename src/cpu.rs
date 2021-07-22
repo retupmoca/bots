@@ -1,14 +1,9 @@
-use std::collections::BTreeMap;
-use std::rc::Rc;
-use std::cell;
-
 use crate::world::{World, Bot};
 use crate::ops::cpu_oplist;
 
 pub struct Cpu {
     pub registers: [u16; 12],
     pub memory: [u8; 65536],
-    pub peripherals: BTreeMap<u16, PeripheralPtr>,
     pub user_mem_max: u16,
 
     pub fetch_flag: u8,
@@ -26,24 +21,12 @@ pub struct Cpu {
 
     execute_cycle: u8,
 }
-#[derive(Clone)]
-pub struct CpuPtr {
-    pub cpu: Rc<cell::RefCell<Cpu>>
-}
-impl CpuPtr {
-    pub fn new(cpu: Cpu) -> CpuPtr {
-        CpuPtr { cpu: Rc::new(cell::RefCell::new(cpu)) }
-    }
-    pub fn get(&self) -> cell::Ref<Cpu> { self.cpu.as_ref().borrow() }
-    pub fn get_mut(&self) -> cell::RefMut<Cpu> { self.cpu.as_ref().borrow_mut() }
-}
 
 impl Default for Cpu {
     fn default() -> Cpu {
         Cpu {
             registers: [0; 12],
             memory: [0; 65536],
-            peripherals: BTreeMap::new(),
             user_mem_max: 0,
 
             fetch_flag: 0,
@@ -65,8 +48,8 @@ impl Default for Cpu {
 }
 
 impl Cpu {
-    pub fn cycle(&mut self, world: &mut World, bot: &mut Bot) {
-        self.execute(world, bot);
+    pub fn cycle(&mut self, bot: &Bot) {
+        self.execute(bot);
         self.decode();
         self.fetch();
     }
@@ -115,7 +98,7 @@ impl Cpu {
         }
     }
 
-    fn execute(&mut self, world: &mut World, bot: &mut Bot) {
+    fn execute(&mut self, bot: &Bot) {
         if self.decode_flag == 0 {
             return;
         }
@@ -124,7 +107,6 @@ impl Cpu {
         self.registers[1] = 1;
 
         let done = cpu_oplist[self.decoded_opcode as usize](
-            world,
             bot,
             self.execute_cycle,
             self.decoded_flags,
@@ -139,30 +121,15 @@ impl Cpu {
             self.execute_cycle = 0;
         }
     }
-
-    pub fn mount_peripheral<T: 'static + Peripheral>(&mut self, base_addr: u16, peripheral: T) {
-        self.peripherals.insert(base_addr, PeripheralPtr::new(peripheral));
-    }
 }
 
 pub trait Peripheral {
-    fn write_word(&mut self, world: &mut World, bot: &mut Bot, addr: u16, val: u16);
-    fn write_byte(&mut self, world: &mut World, bot: &mut Bot, addr: u16, val: u8);
-    fn read_word(&mut self, world: &mut World, bot: &mut Bot, addr: u16) -> u16;
-    fn read_byte(&mut self, world: &mut World, bot: &mut Bot, addr: u16) -> u8;
+    fn write_word(&mut self, bot: &Bot, addr: u16, val: u16);
+    fn write_byte(&mut self, bot: &Bot, addr: u16, val: u8);
+    fn read_word(&mut self, bot: &Bot, addr: u16) -> u16;
+    fn read_byte(&mut self, bot: &Bot, addr: u16) -> u8;
 
-    fn tick(&mut self, _world: &mut World, _bot: &mut Bot) {}
+    fn tick(&mut self, _bot: &Bot, _world: &mut World) {}
 
     fn size(&self) -> u16;
-}
-#[derive(Clone)]
-pub struct PeripheralPtr {
-    peripheral: Rc<cell::RefCell<dyn Peripheral>>
-}
-impl PeripheralPtr {
-    fn new<T: 'static + Peripheral>(peripheral: T) -> Self {
-        Self { peripheral: Rc::new(cell::RefCell::new(peripheral)) }
-    }
-    pub fn get(&self) -> cell::Ref<dyn Peripheral> { self.peripheral.as_ref().borrow() }
-    pub fn get_mut(&self) -> cell::RefMut<dyn Peripheral> { self.peripheral.as_ref().borrow_mut() }
 }
