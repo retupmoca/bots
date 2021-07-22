@@ -24,12 +24,10 @@ fn main() {
 
     loop {
         world.tick();
-        let bot = world.bots[0].get();
-        let tank = bot.tank_mut();
+        let tank = world.bots[0].tank_mut();
         println!("Bot 1 heading: {}", tank.heading);
         println!("Bot 1 position: {}:{}", tank.x, tank.y);
-        let bot = world.bots[1].get();
-        let tank = bot.tank_mut();
+        let tank = world.bots[1].tank_mut();
         println!("Bot 2 position: {}:{}", tank.x, tank.y);
         thread::sleep(Duration::from_millis(1000));
     }

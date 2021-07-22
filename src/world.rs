@@ -3,8 +3,6 @@ use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 use std::f64::consts::PI;
-use std::rc::Rc;
-use std::cell;
 use std::cell::RefCell;
 
 use crate::cpu::{Cpu, Peripheral};
@@ -34,7 +32,7 @@ impl Default for WorldConfig {
 
 pub struct World {
     config: WorldConfig,
-    pub bots: Vec<BotPtr>,
+    pub bots: Vec<Bot>,
     shots: Vec<Shot>
 }
 
@@ -48,7 +46,7 @@ impl World {
     }
 
     pub fn add_bot(&mut self, filename: &str) {
-        self.bots.push(BotPtr::new(Bot::from(Path::new(filename))));
+        self.bots.push(Bot::from(Path::new(filename)));
     }
 
     pub fn place_bots(&mut self) {
@@ -58,7 +56,6 @@ impl World {
         let step = (2f64 * PI) / self.bots.len() as f64;
 
         for bot in &mut self.bots {
-            let mut bot = bot.get_mut();
             let loc_x = (dist as f64 * angle.cos() + 0.5).floor() as i32;
             let loc_y = (dist as f64 * angle.sin() + 0.5).floor() as i32;
             bot.tank_mut().x = loc_x;
@@ -81,7 +78,6 @@ impl World {
         for (i, shot) in self.shots.iter_mut().enumerate() {
             let mut hit = false;
             for bot in &mut self.bots {
-                let bot = bot.get();
                 let mut tank = bot.tank_mut();
                 if shot.x >= tank.x - 40
                 && shot.x <= tank.x + 40
@@ -119,7 +115,6 @@ impl World {
 
             /* check collision again */
             for bot in &mut self.bots {
-                let bot = bot.get();
                 let mut tank = bot.tank_mut();
                 if shot.x >= tank.x - 40
                 && shot.x <= tank.x + 40
@@ -140,7 +135,6 @@ impl World {
         }
         /* bots */
         for bot in &mut self.bots {
-            let bot = bot.get();
             let mut tank = bot.tank_mut();
             if tank.health <= 0 {
                 continue;
@@ -210,8 +204,7 @@ impl World {
     }
 
     fn process_tick(&mut self) {
-        for bot in self.bots.clone() {
-            let bot = bot.get();
+        for bot in self.bots.iter() {
             let tank = bot.tank_mut();
 
             if tank.health <= 0 {
@@ -249,23 +242,11 @@ impl Bot {
         self.cpu.borrow_mut().cycle(self);
     }
 
-    fn tick_peripherals(&self, world: &mut World) {
+    fn tick_peripherals(&self, world: &World) {
         for (_, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             peripheral.tick(self, world);
         }
     }
-}
-
-#[derive(Clone)]
-pub struct BotPtr {
-    pub bot: Rc<cell::RefCell<Bot>>
-}
-impl BotPtr {
-    fn new(bot: Bot) -> BotPtr {
-        BotPtr { bot: Rc::new(cell::RefCell::new(bot)) }
-    }
-    pub fn get(&self) -> cell::Ref<Bot> { self.bot.as_ref().borrow() }
-    fn get_mut(&self) -> cell::RefMut<Bot> { self.bot.as_ref().borrow_mut() }
 }
 
 impl From<&Path> for Bot {

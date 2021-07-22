@@ -129,7 +129,7 @@ pub trait Peripheral {
     fn read_word(&mut self, bot: &Bot, addr: u16) -> u16;
     fn read_byte(&mut self, bot: &Bot, addr: u16) -> u8;
 
-    fn tick(&mut self, _bot: &Bot, _world: &mut World) {}
+    fn tick(&mut self, _bot: &Bot, _world: &World) {}
 
     fn size(&self) -> u16;
 }
