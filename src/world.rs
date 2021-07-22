@@ -33,7 +33,7 @@ impl Default for WorldConfig {
 pub struct World {
     config: WorldConfig,
     pub bots: Vec<Bot>,
-    shots: Vec<Shot>
+    shots: RefCell<Vec<Shot>>
 }
 
 impl World {
@@ -41,7 +41,7 @@ impl World {
         World {
             config,
             bots: vec![],
-            shots: vec![],
+            shots: RefCell::new(vec![]),
         }
     }
 
@@ -75,7 +75,7 @@ impl World {
         /* run world physics */
         /* shots */
         let mut shots_idx_to_delete: Vec<usize> = Vec::new();
-        for (i, shot) in self.shots.iter_mut().enumerate() {
+        for (i, shot) in self.shots.borrow_mut().iter_mut().enumerate() {
             let mut hit = false;
             for bot in &mut self.bots {
                 let mut tank = bot.tank_mut();
@@ -219,13 +219,17 @@ impl World {
             bot.tick_peripherals(self);
         }
     }
+
+    pub fn add_shot(&self, shot: Shot) {
+        self.shots.borrow_mut().push(shot);
+        // TODO: shot event
+    }
 }
 
-struct Shot {
-    x: i32,
-    y: i32,
-    heading: u32,
-    from_bot_id: usize,
+pub struct Shot {
+    pub x: i32,
+    pub y: i32,
+    pub heading: u32,
 }
 
 pub struct Bot {

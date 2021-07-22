@@ -2,7 +2,7 @@ use std::ptr;
 use std::f64::consts::PI;
 
 use crate::cpu::Peripheral;
-use crate::world::{World, Bot};
+use crate::world::{World, Bot, Shot};
 
 #[derive(Default)]
 pub struct ResetPeripheral;
@@ -176,12 +176,26 @@ impl Peripheral for TurretPeripheral {
             _ => {}
         };
     }
-    fn tick(&mut self, bot: &Bot, _world: &World) {
+    fn tick(&mut self, bot: &Bot, world: &World) {
         let tank = bot.tank_mut();
 
         if self.fire != 0 {
             self.fire = 0;
-            // TODO: add shot
+
+            let heading = tank.heading + tank.turret_offset;
+            let mut x = tank.x;
+            let mut y = tank.y;
+
+            let rangle = heading as f64 * PI / 1024f64;
+            let dist = 60f64;
+            let dy = (0.5 + (dist * rangle.cos())).floor();
+            let dx = (0.5 + (dist * rangle.sin())).floor();
+            x += dx as i32;
+            y += dy as i32;
+
+            world.add_shot(Shot {
+                x, y, heading
+            });
         }
     }
 }
