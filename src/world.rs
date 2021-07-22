@@ -247,6 +247,19 @@ impl Bot {
             peripheral.tick(self, world);
         }
     }
+
+    pub fn write_peripheral_word(&self, address: u16, value: u16) {
+        todo!();
+    }
+    pub fn write_peripheral_byte(&self, address: u16, value: u8) {
+        todo!();
+    }
+    pub fn read_peripheral_word(&self, address: u16) -> u16 {
+        todo!();
+    }
+    pub fn read_peripheral_byte(&self, address: u16) -> u8 {
+        todo!();
+    }
 }
 
 impl From<&Path> for Bot {

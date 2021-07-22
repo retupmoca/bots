@@ -1,5 +1,6 @@
 use crate::world::{World, Bot};
 use crate::ops::CPU_OPLIST;
+use crate::ops::Flags;
 
 pub struct Cpu {
     pub registers: [u16; 12],
@@ -8,11 +9,11 @@ pub struct Cpu {
 
     pub fetch_flag: u8,
     pub fetch_pc: u16,
-    fetched_pc: u16,
+    pub fetched_pc: u16,
     fetched_instruction: u32,
 
     pub decode_flag: u8,
-    decoded_pc: u16,
+    pub decoded_pc: u16,
     decoded_opcode: u8,
     decoded_flags: u8,
     decoded_ra: u8,
@@ -110,7 +111,7 @@ impl Cpu {
             self,
             bot,
             self.execute_cycle,
-            self.decoded_flags,
+            Flags::new(self.decoded_flags),
             self.decoded_ra,
             self.decoded_rb,
             self.decoded_imm
