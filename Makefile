@@ -3,11 +3,16 @@ CFLAGS = -g -fPIC -Iinclude
 PREFIX = /usr/local
 DESTDIR = ""
 
-.PHONY : asm
+.PHONY : all cli asm
+all : cli asm
 asm : bin/bots_asm
+cli : bin/bots_cli
 
-bin/bots_asm : asm_src/main.o
-	$(CC) -g -o bin/bots_asm asm_src/main.o
+bin/bots_asm : c_src/asm.o
+	$(CC) -g -o bin/bots_asm c_src/asm.o
+
+bin/bots_cli : c_src/cli.o
+	$(CC) -g -o bin/bots_cli c_src/cli.o -Ltarget/debug -lbots
 
 .PHONY : install
 install :
@@ -16,4 +21,4 @@ install :
 
 .PHONY : clean
 clean :
-	rm -f asm_src/*o bin/bots_asm
+	rm -f c_src/*o bin/bots_asm

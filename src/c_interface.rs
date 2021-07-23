@@ -4,6 +4,11 @@ use std::ffi::CStr;
 use crate::world::{World, WorldConfig, Tank, Event};
 
 #[no_mangle]
+pub unsafe extern "C" fn bots_default_world_config() -> WorldConfig {
+    WorldConfig::default()
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn bots_world_new(config: &WorldConfig) -> *mut World {
     Box::into_raw(Box::new(World::new(config.clone())))
 }
@@ -17,6 +22,11 @@ pub unsafe extern "C" fn bots_world_free(world: *mut World) {
 pub unsafe extern "C" fn bots_world_add_bot(world: *mut World, filename: *const c_char) {
     let filename = CStr::from_ptr(filename);
     (&mut *world).add_bot(filename.to_str().unwrap());
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn bots_world_place_bots(world: *mut World) {
+    (&mut *world).place_bots();
 }
 
 #[no_mangle]
