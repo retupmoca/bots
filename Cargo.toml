@@ -15,4 +15,4 @@ wasm-bindgen = {version = "0.2", optional = true}
 
 [features]
 "c_ffi" = []
-"unstable_wasm_ffi" = ["wasm-bindgen"]
+"wasm_ffi" = ["wasm-bindgen"]

@@ -6,10 +6,7 @@ mod cpu;
 mod ops;
 mod peripherals;
 
-#[cfg(feature = "c_ffi")]
-pub mod c_interface;
-
-#[cfg(feature = "unstable_wasm_ffi")]
-pub mod wasm_interface;
+#[cfg(any(feature="c_ffi", feature="wasm_ffi"))]
+pub mod ffi_interface;
 
 pub use self::world::{World, WorldConfig};

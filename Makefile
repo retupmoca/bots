@@ -22,7 +22,7 @@ c_lib :
 
 wasm_lib :
 	sed -i.bk 's/\["lib"\]/["lib","cdylib"]/' Cargo.toml
-	wasm-pack build --target web -- --features unstable_wasm_ffi
+	wasm-pack build --target web -- --features wasm_ffi
 	mv Cargo.toml.bk Cargo.toml
 
 .PHONY : install

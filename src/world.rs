@@ -6,14 +6,14 @@ use std::f64::consts::PI;
 use std::cell::RefCell;
 use std::ptr;
 
-#[cfg(feature = "unstable_wasm_ffi")]
+#[cfg(feature = "wasm_ffi")]
 use wasm_bindgen::prelude::*;
 
 use crate::cpu::{Cpu, Peripheral};
 use crate::peripherals::*;
 
-#[cfg_attr(feature = "c_ffi", repr(C))]
-#[cfg_attr(feature = "unstable_wasm_ffi", wasm_bindgen)]
+#[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
+#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
 #[derive(Clone)]
 pub struct WorldConfig {
     pub cpus_per_tick: u8,
@@ -37,8 +37,9 @@ impl Default for WorldConfig {
     }
 }
 
+#[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
+#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
 #[derive(Debug)]
-#[repr(C)]
 pub enum EventType {
     Fire,
     Death,
@@ -46,8 +47,9 @@ pub enum EventType {
     Hit,
 }
 
+#[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
+#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
 #[derive(Debug)]
-#[repr(C)]
 pub struct Event {
     event_type: EventType,
     bot_idx: usize
@@ -72,6 +74,10 @@ impl World {
 
     pub fn add_bot(&mut self, filename: &str) {
         self.bots.push(Bot::from(Path::new(filename)));
+    }
+
+    pub fn add_bot_from_data(&mut self, data: &[u8]) {
+        self.bots.push(Bot::from(data));
     }
 
     pub fn add_event(&self, event_type: EventType, bot: &Bot) {
@@ -341,6 +347,12 @@ impl From<&mut dyn Read> for Bot {
 
 impl From<&Vec<u8>> for Bot {
     fn from(data: &Vec<u8>) -> Self {
+        Self::from(&data[..])
+    }
+}
+
+impl From<&[u8]> for Bot {
+    fn from(data: &[u8]) -> Self {
         let bot = Bot {
             tank: RefCell::new(Tank::default()),
             cpu: RefCell::new(Cpu::default()),
@@ -369,8 +381,9 @@ impl From<&Vec<u8>> for Bot {
     }
 }
 
-#[derive(Default)]
-#[repr(C)]
+#[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
+#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
+#[derive(Default, Clone)]
 pub struct Tank {
     pub x: i32,
     pub y: i32,
