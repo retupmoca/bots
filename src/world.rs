@@ -6,11 +6,15 @@ use std::f64::consts::PI;
 use std::cell::RefCell;
 use std::ptr;
 
+#[cfg(feature = "unstable_wasm_ffi")]
+use wasm_bindgen::prelude::*;
+
 use crate::cpu::{Cpu, Peripheral};
 use crate::peripherals::*;
 
+#[cfg_attr(feature = "c_ffi", repr(C))]
+#[cfg_attr(feature = "unstable_wasm_ffi", wasm_bindgen)]
 #[derive(Clone)]
-#[repr(C)]
 pub struct WorldConfig {
     pub cpus_per_tick: u8,
     pub spawn_distance: i32,
