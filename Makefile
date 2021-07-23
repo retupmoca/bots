@@ -12,7 +12,7 @@ bin/bots_asm : c_src/asm.o
 	$(CC) -g -o bin/bots_asm c_src/asm.o
 
 bin/bots_cli : c_src/cli.o c_lib
-	$(CC) -g -o bin/bots_cli c_src/cli.o -Ltarget/debug -lbots
+	$(CC) -g -o bin/bots_cli c_src/cli.o -Ltarget/release -lbots
 
 c_lib :
 	sed -i.bk 's/\["lib"\]/["lib","cdylib"]/' Cargo.toml
