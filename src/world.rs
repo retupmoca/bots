@@ -15,7 +15,7 @@ use crate::cpu::{Cpu, Peripheral};
 use crate::peripherals::*;
 
 #[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
-#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
+#[repr(C)]
 #[derive(Clone)]
 pub struct WorldConfig {
     pub cpus_per_tick: u8,
@@ -40,7 +40,7 @@ impl Default for WorldConfig {
 }
 
 #[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
-#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
+#[repr(C)]
 #[derive(Debug)]
 pub enum EventType {
     Fire,
@@ -50,7 +50,7 @@ pub enum EventType {
 }
 
 #[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
-#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
+#[repr(C)]
 #[derive(Debug)]
 pub struct Event {
     event_type: EventType,
@@ -386,7 +386,7 @@ impl From<&[u8]> for Bot {
 }
 
 #[cfg_attr(feature = "wasm_ffi", wasm_bindgen)]
-#[cfg_attr(any(feature="c_ffi", feature="wasm_ffi"), repr(C))]
+#[repr(C)]
 #[derive(Default, Clone)]
 pub struct Tank {
     pub x: i32,
