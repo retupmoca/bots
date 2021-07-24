@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
+#[cfg(not(feature="wasm_ffi"))]
 use std::path::Path;
+#[cfg(not(feature="wasm_ffi"))]
 use std::fs::File;
 use std::io::Read;
 use std::f64::consts::PI;
@@ -72,6 +74,7 @@ impl World {
         }
     }
 
+    #[cfg(not(feature="wasm_ffi"))]
     pub fn add_bot(&mut self, filename: &Path) {
         self.bots.push(Bot::from(filename));
     }
@@ -329,6 +332,7 @@ impl Bot {
     }
 }
 
+#[cfg(not(feature="wasm_ffi"))]
 impl From<&Path> for Bot {
     fn from(file: &Path) -> Self {
         let mut file = File::open(file).expect("File not found.");

@@ -10,6 +10,8 @@
 use std::os::raw::c_char;
 #[cfg(feature = "c_ffi")]
 use std::ffi::CStr;
+#[cfg(feature = "c_ffi")]
+use std::path::Path;
 
 #[cfg(feature = "wasm_ffi")]
 use wasm_bindgen::prelude::*;
@@ -40,7 +42,8 @@ pub extern "C" fn bots_world_free(world: *mut World) {
 #[no_mangle]
 pub unsafe extern "C" fn bots_world_add_bot(world: *mut World, filename: *const c_char) {
     let filename = CStr::from_ptr(filename);
-    (&mut *world).add_bot(Path::new(filename));
+    let filename = filename.to_string_lossy();
+    (&mut *world).add_bot(Path::new(&*filename));
 }
 
 #[cfg(feature = "c_ffi")]
