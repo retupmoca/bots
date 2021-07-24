@@ -40,7 +40,7 @@ pub extern "C" fn bots_world_free(world: *mut World) {
 #[no_mangle]
 pub unsafe extern "C" fn bots_world_add_bot(world: *mut World, filename: *const c_char) {
     let filename = CStr::from_ptr(filename);
-    (&mut *world).add_bot(filename.to_str().unwrap());
+    (&mut *world).add_bot(Path::new(filename));
 }
 
 #[cfg(feature = "c_ffi")]

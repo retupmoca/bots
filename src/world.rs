@@ -72,8 +72,8 @@ impl World {
         }
     }
 
-    pub fn add_bot(&mut self, filename: &str) {
-        self.bots.push(Bot::from(Path::new(filename)));
+    pub fn add_bot(&mut self, filename: &Path) {
+        self.bots.push(Bot::from(filename));
     }
 
     pub fn add_bot_from_data(&mut self, data: &[u8]) {

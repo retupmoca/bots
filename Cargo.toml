@@ -12,7 +12,8 @@ crate-type = ["lib"]
 [dependencies]
 bitflags = "1.2.1"
 wasm-bindgen = {version = "0.2", optional = true}
+wee_alloc = {version = "0.4.5", optional = true}
 
 [features]
 "c_ffi" = []
-"wasm_ffi" = ["wasm-bindgen"]
+"wasm_ffi" = ["wasm-bindgen", "wee_alloc"]
