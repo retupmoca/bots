@@ -16,13 +16,13 @@ bin/bots_cli : c_src/cli.o c_lib
 
 c_lib :
 	sed -i.bk 's/\["lib"\]/["lib","cdylib"]/' Cargo.toml
-	cargo build --features c_ffi --release
-	cbindgen -o bots.h
+	cargo build --features c_ffi --release || (mv Cargo.toml.bk Cargo.toml && exit 1)
+	cbindgen -o bots.h || (mv Cargo.toml.bk Cargo.toml && exit 1)
 	mv Cargo.toml.bk Cargo.toml
 
 wasm_lib :
 	sed -i.bk 's/\["lib"\]/["lib","cdylib"]/' Cargo.toml
-	wasm-pack build --target web -- --features wasm_ffi
+	wasm-pack build --target web -- --features wasm_ffi || (mv Cargo.toml.bk Cargo.toml && exit 1)
 	mv Cargo.toml.bk Cargo.toml
 
 .PHONY : install
