@@ -1,3 +1,4 @@
+use bitflags::bitflags;
 use crate::world::Bot;
 use crate::cpu::Cpu;
 

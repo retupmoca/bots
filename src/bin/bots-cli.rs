@@ -1,6 +1,7 @@
 use std::time::Duration;
 use std::thread;
 use std::env;
+use std::path::Path;
 
 use bots::{World, WorldConfig};
 
@@ -12,8 +13,8 @@ fn main() {
 
     let args: Vec<String> = env::args().collect();
     if args.len() == 3 {
-        world.add_bot(&args[1]);
-        world.add_bot(&args[2]);
+        world.add_bot(Path::new(&args[1]));
+        world.add_bot(Path::new(&args[2]));
     }
     else {
         println!("Please provide two robots");

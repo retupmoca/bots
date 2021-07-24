@@ -32,4 +32,7 @@ install :
 
 .PHONY : clean
 clean :
-	rm -f c_src/*o bin/bots_asm
+	rm -f c_src/*o bin/bots_asm bin/bots_cli
+	rm -rf pkg/
+	rm -f bots.h
+	cargo clean
