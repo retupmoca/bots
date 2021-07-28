@@ -60,7 +60,7 @@ pub struct Event {
 pub struct World {
     config: WorldConfig,
     pub bots: Vec<Bot>,
-    shots: RefCell<Vec<Shot>>,
+    pub shots: RefCell<Vec<Shot>>,
     pub events: RefCell<Vec<Event>>,
 }
 
