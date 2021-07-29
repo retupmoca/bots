@@ -1,0 +1,8 @@
+language = "C"
+
+[export.rename]
+"EventType" = "bots_event_type"
+"World" = "bots_world"
+"WorldConfig" = "bots_world_config"
+"Event" = "bots_event"
+"Tank" = "bots_tank"

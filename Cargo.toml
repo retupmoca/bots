@@ -1,0 +1,19 @@
+[package]
+name = "bots"
+version = "0.1.0"
+authors = ["Andrew <andrew@egeler.us>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+bitflags = "1.2.1"
+wasm-bindgen = {version = "0.2", optional = true}
+wee_alloc = {version = "0.4.5", optional = true}
+
+[features]
+"c_ffi" = []
+"wasm_ffi" = ["wasm-bindgen", "wee_alloc"]

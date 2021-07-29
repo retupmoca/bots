@@ -1,0 +1,49 @@
+<html><body>
+    <script type="module">
+        import init, { bots_default_world_config, bots_world_new, bots_world_free, bots_world_add_bot_from_data, bots_world_place_bots, bots_tick, bots_get_tank_value } from './pkg/bots.js';
+
+        const testbot_b64 = "ECAAZMQg/sAQIAAQxCD+5RAgADLAIP7mECAAEMAg/sHAIP7SxBD+0BAwAAAQMwAB4AMACvBgACzwAAAc";
+        const testbot_str = window.atob(testbot_b64);
+        const testbot_bin = new Uint8Array(new ArrayBuffer(testbot_str.length));
+        for(let i = 0; i < testbot_str.length; i++) {
+          testbot_bin[i] = testbot_str.charCodeAt(i);
+        }
+        console.log(testbot_bin);
+        let world;
+
+        async function run() {
+            console.log('before init');
+            await init();
+
+            console.log('post init');
+
+            console.log('creating world');
+            const config = bots_default_world_config();
+            world = bots_world_new(config);
+            console.log(config);
+            console.log('created');
+
+            console.log('creating bots');
+            bots_world_add_bot_from_data(world, testbot_bin);
+            bots_world_add_bot_from_data(world, testbot_bin);
+            console.log('added');
+
+            console.log('placing...');
+            bots_world_place_bots(world);
+            console.log('placed');
+
+            setTimeout(world_tick, 1000);
+        }
+
+        function world_tick() {
+            bots_tick(world);
+            const bot_a = bots_get_tank_value(world, 0);
+            const bot_b = bots_get_tank_value(world, 1);
+            console.log('Bot 1 position: ', bot_a.x, bot_a.y);
+            console.log('Bot 2 position: ', bot_b.x, bot_b.y);
+            setTimeout(world_tick, 1000);
+        }
+
+        run();
+    </script>
+</body></html>
