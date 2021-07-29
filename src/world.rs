@@ -147,7 +147,8 @@ impl World {
             let start_y = shot.y;
             shot.x += dx;
             shot.y += dy;
-            if (start_x - shot.x).abs() > dx * 2 || (start_y - shot.y) > dy * 2 {
+            if (start_x - shot.x).abs() > (dx * 2).abs()
+            || (start_y - shot.y).abs() > (dy * 2).abs() {
                 // detect wrapping and delete shot
                 // TODO: rust probably just blows up here?
                 shots_idx_to_delete.push(i);

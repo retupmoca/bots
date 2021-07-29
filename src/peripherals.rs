@@ -186,8 +186,8 @@ impl Peripheral for TurretPeripheral {
             let mut x = tank.x;
             let mut y = tank.y;
 
-            let rangle = heading as f64 * PI / 1024f64;
-            let dist = 60f64;
+            let rangle = heading as f64 * PI / 512f64;
+            let dist = 65f64;
             let dy = (0.5 + (dist * rangle.cos())).floor();
             let dx = (0.5 + (dist * rangle.sin())).floor();
             x += dx as i32;
