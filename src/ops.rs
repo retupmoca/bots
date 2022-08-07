@@ -224,7 +224,8 @@ fn op_load(cpu: &mut Cpu, bot: &Bot, _cycle: u8, inst: u32) -> bool {
         match size {
             0 => bot.read_peripheral_byte(target as u32) as u32,
             1 => bot.read_peripheral_half(target as u32) as u32,
-            2 => bot.read_peripheral_word(target as u32)
+            2 => bot.read_peripheral_word(target as u32),
+            _ => unreachable!()
         }
     }
     else {
@@ -233,13 +234,15 @@ fn op_load(cpu: &mut Cpu, bot: &Bot, _cycle: u8, inst: u32) -> bool {
             0 => cpu.memory[target] as u32,
             1 => (cpu.memory[target] as u32) << 8 + (cpu.memory[target+1] as u32),
             2 => (cpu.memory[target] as u32) << 24 + (cpu.memory[target+1] as u32) << 16 + (cpu.memory[target+2] as u32) << 8 + (cpu.memory[target+3] as u32),
+            _ => unreachable!()
         }
     };
 
     cpu.registers[decoded.rd() as usize] = if (funct3 & 0b100) > 0 {
         match size {
             0 => (raw as i8) as i32 as u32,
-            1 => (raw as i16) as i32 as u32
+            1 => (raw as i16) as i32 as u32,
+            _ => unreachable!()
         }
     }
     else {
@@ -258,7 +261,8 @@ fn op_store(cpu: &mut Cpu, bot: &Bot, _cycle: u8, inst: u32) -> bool {
         match size {
             0 => bot.write_peripheral_byte(target as u32, cpu.registers[rs2] as u8),
             1 => bot.write_peripheral_half(target as u32, cpu.registers[rs2] as u16),
-            2 => bot.write_peripheral_word(target as u32, cpu.registers[rs2])
+            2 => bot.write_peripheral_word(target as u32, cpu.registers[rs2]),
+            _ => unreachable!()
         }
     }
     else {
@@ -275,6 +279,7 @@ fn op_store(cpu: &mut Cpu, bot: &Bot, _cycle: u8, inst: u32) -> bool {
                 cpu.memory[target + 2] = (cpu.registers[rs2] >> 8) as u8;
                 cpu.memory[target + 3] = cpu.registers[rs2] as u8;
             },
+            _ => unreachable!()
         }
     }
     true
@@ -294,8 +299,8 @@ pub const CMP_OPLIST: [(u8, CmpOp); 6] = [
 fn op_branch(cpu: &mut Cpu, _bot: &Bot, _cycle: u8, inst: u32) -> bool {
     let decoded = BType(inst);
     let funct3 = decoded.funct3();
-    let ina = cpu.registers[decoded.rs1()];
-    let inb = cpu.registers[decoded.rs2()];
+    let ina = cpu.registers[decoded.rs1() as usize];
+    let inb = cpu.registers[decoded.rs2() as usize];
 
     let mut branch = false;
 

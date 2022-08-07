@@ -283,7 +283,7 @@ pub struct Shot {
 pub struct Bot {
     pub tank: RefCell<Tank>,
     pub cpu: RefCell<Cpu>,
-    pub peripherals: RefCell<BTreeMap<u16, Box<dyn Peripheral>>>,
+    pub peripherals: RefCell<BTreeMap<u32, Box<dyn Peripheral>>>,
 }
 
 impl Bot {
@@ -311,7 +311,7 @@ impl Bot {
     pub fn write_peripheral_half(&self, address: u32, value: u16) {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
-                peripheral.write_word(self, address - addr, value);
+                peripheral.write_half(self, address - addr, value);
             }
         }
     }
@@ -333,7 +333,7 @@ impl Bot {
     pub fn read_peripheral_half(&self, address: u32) -> u16 {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
-                return peripheral.read_word(self, address - addr);
+                return peripheral.read_half(self, address - addr);
             }
         }
         return 0;
