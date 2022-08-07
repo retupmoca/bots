@@ -283,7 +283,7 @@ pub struct Shot {
 pub struct Bot {
     pub tank: RefCell<Tank>,
     pub cpu: RefCell<Cpu>,
-    pub peripherals: RefCell<BTreeMap<u16, Box<dyn Peripheral>>>,
+    pub peripherals: RefCell<BTreeMap<u32, Box<dyn Peripheral>>>,
 }
 
 impl Bot {
@@ -301,21 +301,28 @@ impl Bot {
         }
     }
 
-    pub fn write_peripheral_word(&self, address: u16, value: u16) {
+    pub fn write_peripheral_word(&self, address: u32, value: u32) {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 peripheral.write_word(self, address - addr, value);
             }
         }
     }
-    pub fn write_peripheral_byte(&self, address: u16, value: u8) {
+    pub fn write_peripheral_half(&self, address: u32, value: u16) {
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                peripheral.write_half(self, address - addr, value);
+            }
+        }
+    }
+    pub fn write_peripheral_byte(&self, address: u32, value: u8) {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 peripheral.write_byte(self, address - addr, value);
             }
         }
     }
-    pub fn read_peripheral_word(&self, address: u16) -> u16 {
+    pub fn read_peripheral_word(&self, address: u32) -> u32 {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 return peripheral.read_word(self, address - addr);
@@ -323,7 +330,15 @@ impl Bot {
         }
         return 0;
     }
-    pub fn read_peripheral_byte(&self, address: u16) -> u8 {
+    pub fn read_peripheral_half(&self, address: u32) -> u16 {
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                return peripheral.read_half(self, address - addr);
+            }
+        }
+        return 0;
+    }
+    pub fn read_peripheral_byte(&self, address: u32) -> u8 {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 return peripheral.read_byte(self, address - addr);
@@ -376,10 +391,10 @@ impl From<&[u8]> for Bot {
 
         {
             let mut peripherals = bot.peripherals.borrow_mut();
-            peripherals.insert(0xfef0, Box::new(ResetPeripheral::default()));
-            peripherals.insert(0xfee0, Box::new(RadarPeripheral::default()));
-            peripherals.insert(0xfed0, Box::new(TurretPeripheral::default()));
-            peripherals.insert(0xfec0, Box::new(HullPeripheral::default()));
+            peripherals.insert(0xf0_00_00_30, Box::new(ResetPeripheral::default()));
+            peripherals.insert(0xf0_00_00_20, Box::new(RadarPeripheral::default()));
+            peripherals.insert(0xf0_00_00_10, Box::new(TurretPeripheral::default()));
+            peripherals.insert(0xf0_00_00_00, Box::new(HullPeripheral::default()));
         }
 
         bot
