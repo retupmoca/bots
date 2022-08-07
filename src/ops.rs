@@ -287,7 +287,7 @@ fn op_cmp(m: &mut Cpu, _bot: &Bot, _cycle: u8, flags: Flags, _ra: u8, rb: u8, im
 }
 fn op_jmp(m: &mut Cpu, _bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm: u16) -> bool {
     let flags = F::combine_nibbles(flags.bits, ra & 0x0f);
-    let mut target = compute_memory_address(m, 4, false, flags.contains(F::JMP_IMM_IS_REG), rb, imm);
+    let target = compute_memory_address(m, 4, false, flags.contains(F::JMP_IMM_IS_REG), rb, imm);
 
     let mut jump = true;
 
@@ -313,21 +313,15 @@ fn op_jmp(m: &mut Cpu, _bot: &Bot, cycle: u8, flags: Flags, ra: u8, rb: u8, imm:
 
     if jump && cycle == 0 && flags.contains(F::JMP_CALL) { /* if this is the first cycle of a call */
         m.registers[10] -= 2;
-        let mut pc = m.decoded_pc;
+        let mut pc = m.pc;
         pc += 4;
         m.memory[m.registers[10] as usize] = (pc >> 8) as u8;
         m.memory[m.registers[10] as usize + 1] = (pc & 0xff) as u8;
         return false;
     }
 
-    if !jump {
-        target = m.decoded_pc + 4;
-    }
-
-    if m.fetched_pc != target { /* if prediction was wrong */
-        m.fetch_pc = target;
-        m.fetch_flag = 0;
-        m.decode_flag = 0;
+    if jump {
+        m.pc = target;
     }
 
     true

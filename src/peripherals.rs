@@ -15,9 +15,7 @@ impl Peripheral for ResetPeripheral {
     }
     fn write_byte(&mut self, bot: &Bot, _addr: u16, _val: u8) {
         let mut cpu = bot.cpu.borrow_mut();
-        cpu.fetch_pc = 0;
-        cpu.fetch_flag = 0;
-        cpu.decode_flag = 0;
+        cpu.pc = 0;
     }
 }
 
