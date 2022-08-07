@@ -301,21 +301,28 @@ impl Bot {
         }
     }
 
-    pub fn write_peripheral_word(&self, address: u16, value: u16) {
+    pub fn write_peripheral_word(&self, address: u32, value: u32) {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 peripheral.write_word(self, address - addr, value);
             }
         }
     }
-    pub fn write_peripheral_byte(&self, address: u16, value: u8) {
+    pub fn write_peripheral_half(&self, address: u32, value: u16) {
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                peripheral.write_word(self, address - addr, value);
+            }
+        }
+    }
+    pub fn write_peripheral_byte(&self, address: u32, value: u8) {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 peripheral.write_byte(self, address - addr, value);
             }
         }
     }
-    pub fn read_peripheral_word(&self, address: u16) -> u16 {
+    pub fn read_peripheral_word(&self, address: u32) -> u32 {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 return peripheral.read_word(self, address - addr);
@@ -323,7 +330,15 @@ impl Bot {
         }
         return 0;
     }
-    pub fn read_peripheral_byte(&self, address: u16) -> u8 {
+    pub fn read_peripheral_half(&self, address: u32) -> u16 {
+        for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
+            if addr <= address && (addr + peripheral.size()) > address {
+                return peripheral.read_word(self, address - addr);
+            }
+        }
+        return 0;
+    }
+    pub fn read_peripheral_byte(&self, address: u32) -> u8 {
         for (&addr, peripheral) in self.peripherals.borrow_mut().iter_mut() {
             if addr <= address && (addr + peripheral.size()) > address {
                 return peripheral.read_byte(self, address - addr);
