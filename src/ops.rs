@@ -26,7 +26,7 @@ impl RType {
 struct IType(u32);
 impl IType {
     fn imm(&self) -> u32 {
-        (self.0 & 0xff_f0_00_00) >> 20
+        ((self.0 as i32 & 0xff_f0_00_00) >> 20) as u32
     }
 
     fn rs1(&self) -> u8 {
@@ -44,7 +44,7 @@ impl IType {
 struct SType(u32);
 impl SType {
     fn imm(&self) -> u32 {
-        ((self.0 & 0xfe_00_00_80) >> 25) << 5 
+        ((self.0 as i32 & 0xfe_00_00_80) >> 25) as u32 << 5
         + ((self.0 & 0x00_00_0f_80) >> 7)
     }
 
@@ -63,7 +63,7 @@ impl SType {
 struct BType(u32);
 impl BType {
     fn imm(&self) -> u32 {
-        ((self.0 & 0x80_00_00_00) >> 31) << 12
+        ((self.0 as i32 & 0x80_00_00_00) >> 31) as u32 << 12
         + ((self.0 & 0x00_00_00_80) >> 7) << 11
         + ((self.0 & 0x7e_00_00_00) >> 25) << 5
         + ((self.0 & 0x00_00_0f_00) >> 8) << 1
@@ -94,7 +94,7 @@ impl UType {
 struct JType(u32);
 impl JType {
     fn imm(&self) -> u32 {
-        ((self.0 & 0x80_00_00_00) >> 31) << 20
+        ((self.0 as i32 & 0x80_00_00_00) >> 31) as u32 << 20
         + ((self.0 & 0x00_0f_f0_00) >> 12) << 12
         + ((self.0 & 0x00_10_00_00) >> 20) << 11
         + ((self.0 & 0x7f_e0_00_00) >> 21) << 1
