@@ -24,7 +24,9 @@ fn main() {
     world.place_bots();
 
     loop {
+        let start = std::time::Instant::now();
         world.tick();
+        println!("Tick took: {:?}", start.elapsed());
         println!("{:?}", world.events);
         let tank = world.bots[0].tank_mut();
         println!("Bot 1 heading: {}", tank.heading);
