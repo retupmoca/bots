@@ -391,10 +391,10 @@ impl From<&[u8]> for Bot {
 
         {
             let mut peripherals = bot.peripherals.borrow_mut();
-            peripherals.insert(0xfef0, Box::new(ResetPeripheral::default()));
-            peripherals.insert(0xfee0, Box::new(RadarPeripheral::default()));
-            peripherals.insert(0xfed0, Box::new(TurretPeripheral::default()));
-            peripherals.insert(0xfec0, Box::new(HullPeripheral::default()));
+            peripherals.insert(0xf0_00_00_30, Box::new(ResetPeripheral::default()));
+            peripherals.insert(0xf0_00_00_20, Box::new(RadarPeripheral::default()));
+            peripherals.insert(0xf0_00_00_10, Box::new(TurretPeripheral::default()));
+            peripherals.insert(0xf0_00_00_00, Box::new(HullPeripheral::default()));
         }
 
         bot
