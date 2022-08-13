@@ -223,14 +223,10 @@ fn op_load(cpu: &mut Cpu, bot: &Bot, _cycle: u8, inst: u32) -> bool {
     let target = (decoded.imm() + cpu.registers[decoded.rs1() as usize]) as usize;
     let funct3 = decoded.funct3();
     let size = funct3 & 0b11;
-    let raw = if target >= 0xf0_00_00_00 {
+    let raw =
+    if target >= 0xf0_00_00_00 {
         // I/O read
-        match size {
-            0 => bot.read_peripheral_byte(target as u32) as u32,
-            1 => bot.read_peripheral_half(target as u32) as u32,
-            2 => bot.read_peripheral_word(target as u32),
-            _ => unreachable!()
-        }
+        bot.read_peripheral_mem(target as u32)
     }
     else {
         // memory read
@@ -264,12 +260,7 @@ fn op_store(cpu: &mut Cpu, bot: &Bot, _cycle: u8, inst: u32) -> bool {
     let rs2 = decoded.rs2() as usize;
     if target >= 0xf0_00_00_00 {
         // I/O write
-        match size {
-            0 => bot.write_peripheral_byte(target as u32, cpu.registers[rs2] as u8),
-            1 => bot.write_peripheral_half(target as u32, cpu.registers[rs2] as u16),
-            2 => bot.write_peripheral_word(target as u32, cpu.registers[rs2]),
-            _ => unreachable!()
-        }
+        bot.write_peripheral_mem(target as u32, cpu.registers[rs2]);
     }
     else {
         // memory write

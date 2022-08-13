@@ -8,18 +8,12 @@ use crate::world::{World, Bot, Shot, EventType};
 pub struct ResetPeripheral;
 impl Peripheral for ResetPeripheral {
     fn size(&self) -> u32 { 1 }
-    fn read_word(&mut self, _bot: &Bot, _addr: u32) -> u32 { 0 }
-    fn read_half(&mut self, _bot: &Bot, _addr: u32) -> u16 { 0 }
-    fn read_byte(&mut self, _bot: &Bot, _addr: u32) -> u8 { 0 }
-    fn write_word(&mut self, bot: &Bot, addr: u32, val: u32) {
-        self.write_byte(bot, addr, (val & 0xff) as u8);
-    }
-    fn write_half(&mut self, bot: &Bot, addr: u32, val: u16) {
-        self.write_byte(bot, addr, (val & 0xff) as u8);
-    }
-    fn write_byte(&mut self, bot: &Bot, _addr: u32, _val: u8) {
-        let mut cpu = bot.cpu.borrow_mut();
-        cpu.pc = 0;
+    fn read_mem(&mut self, _bot: &Bot, _addr: u32) -> u32 { 0 }
+    fn write_mem(&mut self, bot: &Bot, _addr: u32, val: u32) {
+        if val != 0 {
+            let mut cpu = bot.cpu.borrow_mut();
+            cpu.pc = 0;
+        }
     }
 }
 
@@ -45,39 +39,27 @@ impl RadarMem {
 }
 impl Peripheral for RadarPeripheral {
     fn size(&self) -> u32 { 0x13 }
-    fn read_word(&mut self, _bot: &Bot, _addr: u32) -> u32 { 0 }
-    fn read_half(&mut self, bot: &Bot, addr: u32) -> u16 { 
+    fn read_mem(&mut self, bot: &Bot, addr: u32) -> u32 {
         match addr {
-            RadarMem::RESULT_OFFSET => self.result_offset,
-            RadarMem::RESULT_RANGE => self.result_range,
-            RadarMem::RANGE => self.range,
-            RadarMem::STEERING => bot.tank_mut()._req_scanner_steering,
-            RadarMem::TARGET_OFFSET => ((bot.tank_mut().scanner_offset + bot.tank_mut()._req_scanner_steering as u32) % 1024) as u16,
+            RadarMem::RESULT_OFFSET => self.result_offset as u32,
+            RadarMem::RESULT_RANGE => self.result_range as u32,
+            RadarMem::RANGE => self.range as u32,
+            RadarMem::STEERING => bot.tank_mut()._req_scanner_steering as u32,
+            RadarMem::TARGET_OFFSET => ((bot.tank_mut().scanner_offset + bot.tank_mut()._req_scanner_steering as u32) % 1024),
+            RadarMem::KEEPSHIFT => bot.tank_mut()._req_scanner_keepshift as u32,
+            RadarMem::ARC => self.arc as u32,
+            RadarMem::SCAN => self.scan as u32,
             _ => 0
         }
     }
-    fn read_byte(&mut self, bot: &Bot, addr: u32) -> u8 {
+    fn write_mem(&mut self, bot: &Bot, addr: u32, val: u32) {
         match addr {
-            RadarMem::KEEPSHIFT => bot.tank_mut()._req_scanner_keepshift,
-            RadarMem::ARC => self.arc,
-            RadarMem::SCAN => self.scan,
-            _ => 0
-        }
-    }
-    fn write_word(&mut self, _bot: &Bot, _addr: u32, _val: u32) { }
-    fn write_half(&mut self, bot: &Bot, addr: u32, val: u16) {
-        match addr {
-            RadarMem::RANGE => self.range = val,
-            RadarMem::STEERING => bot.tank_mut()._req_scanner_steering = val,
+            RadarMem::RANGE => self.range = val as u16,
+            RadarMem::STEERING => bot.tank_mut()._req_scanner_steering = val as u16,
             RadarMem::TARGET_OFFSET => bot.tank_mut()._req_scanner_steering = (val as u32 - bot.tank_mut().scanner_offset) as u16,
-            _ => {}
-        };
-    }
-    fn write_byte(&mut self, bot: &Bot, addr: u32, val: u8) {
-        match addr {
-            RadarMem::ARC => self.arc = val,
-            RadarMem::SCAN => self.scan = val,
-            RadarMem::KEEPSHIFT => bot.tank_mut()._req_scanner_keepshift = val,
+            RadarMem::ARC => self.arc = val as u8,
+            RadarMem::SCAN => self.scan = val as u8,
+            RadarMem::KEEPSHIFT => bot.tank_mut()._req_scanner_keepshift = val as u8,
             _ => {}
         };
     }
@@ -152,33 +134,21 @@ impl TurretMem {
 }
 impl Peripheral for TurretPeripheral {
     fn size(&self) -> u32 { 0x06 }
-    fn read_word(&mut self, _bot: &Bot, _addr: u32) -> u32 { 0 }
-    fn read_half(&mut self, bot: &Bot, addr: u32) -> u16 {
+    fn read_mem(&mut self, bot: &Bot, addr: u32) -> u32 {
         match addr {
-            TurretMem::STEERING => bot.tank_mut()._req_turret_steering,
-            TurretMem::TARGET_OFFSET => ((bot.tank_mut().turret_offset + bot.tank_mut()._req_turret_steering as u32) % 1024) as u16,
+            TurretMem::STEERING => bot.tank_mut()._req_turret_steering as u32,
+            TurretMem::TARGET_OFFSET => ((bot.tank_mut().turret_offset + bot.tank_mut()._req_turret_steering as u32) % 1024),
+            TurretMem::FIRE => self.fire as u32,
+            TurretMem::KEEPSHIFT => bot.tank_mut()._req_turret_keepshift as u32,
             _ => 0
         }
     }
-    fn read_byte(&mut self, bot: &Bot, addr: u32) -> u8 {
+    fn write_mem(&mut self, bot: &Bot, addr: u32, val: u32) {
         match addr {
-            TurretMem::FIRE => self.fire,
-            TurretMem::KEEPSHIFT => bot.tank_mut()._req_turret_keepshift,
-            _ => 0
-        }
-    }
-    fn write_word(&mut self, _bot: &Bot, _addr: u32, _val: u32) { }
-    fn write_half(&mut self, bot: &Bot, addr: u32, val: u16) {
-        match addr {
-            TurretMem::STEERING => bot.tank_mut()._req_turret_steering = val,
+            TurretMem::STEERING => bot.tank_mut()._req_turret_steering = val as u16,
             TurretMem::TARGET_OFFSET => bot.tank_mut()._req_turret_steering = (val as u32 - bot.tank_mut().turret_offset) as u16,
-            _ => {}
-        };
-    }
-    fn write_byte(&mut self, bot: &Bot, addr: u32, val: u8) {
-        match addr {
-            TurretMem::FIRE => self.fire = val,
-            TurretMem::KEEPSHIFT => bot.tank_mut()._req_turret_keepshift = val,
+            TurretMem::FIRE => self.fire = val as u8,
+            TurretMem::KEEPSHIFT => bot.tank_mut()._req_turret_keepshift = val as u8,
             _ => {}
         };
     }
@@ -216,28 +186,16 @@ impl HullMem {
 }
 impl Peripheral for HullPeripheral {
     fn size(&self) -> u32 { 0x03 }
-    fn read_word(&mut self, _bot: &Bot, _addr: u32) -> u32 { 0 }
-    fn read_half(&mut self, bot: &Bot, addr: u32) -> u16 {
+    fn read_mem(&mut self, bot: &Bot, addr: u32) -> u32 {
         match addr {
-            HullMem::STEERING => bot.tank_mut()._req_steering,
+            HullMem::STEERING => bot.tank_mut()._req_steering as u32,
+            HullMem::THROTTLE => bot.tank_mut()._req_throttle as u32,
             _ => 0
         }
     }
-    fn read_byte(&mut self, bot: &Bot, addr: u32) -> u8 {
+    fn write_mem(&mut self, bot: &Bot, addr: u32, val: u32) {
         match addr {
-            HullMem::THROTTLE => bot.tank_mut()._req_throttle as u8,
-            _ => 0
-        }
-    }
-    fn write_word(&mut self, _bot: &Bot, _addr: u32, _val: u32) { }
-    fn write_half(&mut self, bot: &Bot, addr: u32, val: u16) {
-        match addr {
-            HullMem::STEERING => bot.tank_mut()._req_steering = val,
-            _ => {}
-        };
-    }
-    fn write_byte(&mut self, bot: &Bot, addr: u32, val: u8) {
-        match addr {
+            HullMem::STEERING => bot.tank_mut()._req_steering = val as u16,
             HullMem::THROTTLE => bot.tank_mut()._req_throttle = val as i16,
             _ => {}
         };

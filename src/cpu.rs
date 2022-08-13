@@ -31,7 +31,7 @@ impl Cpu {
             self.pc = 0;
         }
 
-        let mut instruction  = (self.memory[self.pc as usize] as u32);
+        let mut instruction  = self.memory[self.pc as usize] as u32;
         instruction |= (self.memory[(self.pc + 1) as usize] as u32) << 8;
         instruction |= (self.memory[(self.pc + 2) as usize] as u32) << 16;
         instruction |= (self.memory[(self.pc + 3) as usize] as u32) << 24;
@@ -50,12 +50,8 @@ impl Cpu {
 pub trait Peripheral {
     // TODO: separate word/half/byte implementations might be hard to use from a high level
     // language?
-    fn write_word(&mut self, bot: &Bot, addr: u32, val: u32);
-    fn write_half(&mut self, bot: &Bot, addr: u32, val: u16);
-    fn write_byte(&mut self, bot: &Bot, addr: u32, val: u8);
-    fn read_word(&mut self, bot: &Bot, addr: u32) -> u32;
-    fn read_half(&mut self, bot: &Bot, addr: u32) -> u16;
-    fn read_byte(&mut self, bot: &Bot, addr: u32) -> u8;
+    fn write_mem(&mut self, bot: &Bot, addr: u32, val: u32);
+    fn read_mem(&mut self, bot: &Bot, addr: u32) -> u32;
 
     fn tick(&mut self, _bot: &Bot, _world: &World) {}
 
